@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-Wall
-DEPS=sort.o util.o
+DEPS=sort.o util.o stats.o
 BINDIR=bin
 
 all: test

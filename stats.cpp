@@ -1,13 +1,14 @@
 #include "stats.hpp"
 #include "sort.hpp"
 #include <map>
+#include <cstdlib>
 
 namespace landsat {
 
 	numeric_t min(numeric_t const *data, size_t size)
 	{
 		numeric_t mn = data[0];
-		for (int i = 0; i < size; i++) {
+		for (size_t i = 0; i < size; i++) {
 			if (mn > data[i]) {
 				mn = data[i];
 			}
@@ -18,7 +19,7 @@ namespace landsat {
 	numeric_t max(numeric_t const *data, size_t size)
 	{
 		numeric_t mx = data[0];
-		for (int i = 0; i < size; i++) {
+		for (size_t i = 0; i < size; i++) {
 			if (mx < data[i]) {
 				mx = data[i];
 			}
@@ -41,7 +42,7 @@ namespace landsat {
 	numeric_t mode(numeric_t const *data, size_t size)
 	{
 		std::map<numeric_t, int> counts;
-		for (int i = 0; i < size; i++) {
+		for (size_t i = 0; i < size; i++) {
 			if (counts.count(data[i]) == 0) {
 				counts[data[i]] = 0;
 			}
@@ -55,6 +56,7 @@ namespace landsat {
 			int count = iter->second;
 			if (count > mode_count) {
 				mode = element;
+				mode_count = count;
 			}
 		}
 		return mode;
@@ -63,7 +65,7 @@ namespace landsat {
 	numeric_t mean(numeric_t const *data, size_t size)
 	{
 		numeric_t sum = data[0];
-		for (int i = 1; i < size; i++) {
+		for (size_t i = 1; i < size; i++) {
 			sum += data[i];
 		}
 		numeric_t avg = sum / size;
@@ -72,9 +74,9 @@ namespace landsat {
 
 	numeric_t range(numeric_t const *data, size_t size)
 	{
-		numeric_t min = min(data, size);
-		numeric_t max = max(data, size);
-		numeric_t rng = max - min;
+		numeric_t mn = min(data, size);
+		numeric_t mx = max(data, size);
+		numeric_t rng = mx - mn;
 		return rng;
 	}
 
