@@ -29,7 +29,7 @@ namespace landsat
 	{
 		qs_recurse(list, list + size - 1);
 	}
-
+/*
 	GENERIC_V insertion_sort(T *list, size_t size)
 	{
 		T tmp;
@@ -37,12 +37,24 @@ namespace landsat
 		for (i = 1; i < size; i++) {
 			j = i;
 			while (j > 0 && list[j - 1] > list[j]) {
-				swap(&arr[j], &arr[j - 1];
+				swap(list + j, list + j - 1);
 				j--;
 			}
 		}
 	}
-
+*/
+	void insertion_sort(double *list, size_t size)
+	{
+		double tmp;
+		int i, j;
+		for (i = 1; i < size; i++) {
+			j = i;
+			while (j > 0 && list[j - 1] > list[j]) {
+				swap(list + j, list + j - 1);
+				j--;
+			}
+		}
+	}
 	GENERIC_V qs_recurse(T *left, T *right)
 	{
 		if (left < right) {
@@ -77,7 +89,7 @@ namespace landsat
 		// select the median of middle, left, and right for the pivot
 		if ((*left <= *mid && *mid <= *right) || (*right <= *mid && *mid <= *left)) {
 			pivot = mid;
-		if ((*mid <= *left && *left <= *right) || (*right <= *left && *left <= *mid)) {
+		} else if ((*mid <= *left && *left <= *right) || (*right <= *left && *left <= *mid)) {
 			pivot = left;
 		} else {
 			pivot = right;
