@@ -4,5 +4,6 @@
 
 namespace landsat
 {
-	GENERIC_V swap(T *x1, T *x2);
+	void swap(numeric_t *x1, numeric_t *x2);
 }
+

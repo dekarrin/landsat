@@ -4,9 +4,9 @@
 
 namespace landsat {
 
-	GENERIC min(T const *data, size_t size)
+	numeric_t min(numeric_t const *data, size_t size)
 	{
-		T mn = data[0];
+		numeric_t mn = data[0];
 		for (int i = 0; i < size; i++) {
 			if (mn > data[i]) {
 				mn = data[i];
@@ -15,9 +15,9 @@ namespace landsat {
 		return mn;
 	}
 
-	GENERIC max(T const *data, size_t size)
+	numeric_t max(numeric_t const *data, size_t size)
 	{
-		T mx = data[0];
+		numeric_t mx = data[0];
 		for (int i = 0; i < size; i++) {
 			if (mx < data[i]) {
 				mx = data[i];
@@ -26,21 +26,21 @@ namespace landsat {
 		return mx;
 	}
 
-	GENERIC median(T const *data, size_t size)
+	numeric_t median(numeric_t const *data, size_t size)
 	{
-		T *sorted = sort(data, size);
-		T med = sorted[size / 2];
+		numeric_t *sorted = sort(data, size);
+		numeric_t med = sorted[size / 2];
 		if (size % 2 == 0) {
-			T med2 = sorted[(size / 2) - 1];
+			numeric_t med2 = sorted[(size / 2) - 1];
 			med = ((med + med2) / 2);
 		}
 		free(sorted);
 		return med;
 	}
 
-	GENERIC mode(T const *data, size_t size)
+	numeric_t mode(numeric_t const *data, size_t size)
 	{
-		std::map<T, int> counts;
+		std::map<numeric_t, int> counts;
 		for (int i = 0; i < size; i++) {
 			if (counts.count(data[i]) == 0) {
 				counts[data[i]] = 0;
@@ -48,10 +48,10 @@ namespace landsat {
 			counts[data[i]]++;
 		}
 		int mode_count = 0;
-		T mode;
-		std::map<T, int>::const_iterator iter;
+		numeric_t mode;
+		std::map<numeric_t, int>::const_iterator iter;
 		for (iter = counts.begin(); iter != counts.end(); iter++) {
-			T element = iter->first;
+			numeric_t element = iter->first;
 			int count = iter->second;
 			if (count > mode_count) {
 				mode = element;
@@ -60,21 +60,21 @@ namespace landsat {
 		return mode;
 	}
 
-	GENERIC mean(T const *data, size_t size)
+	numeric_t mean(numeric_t const *data, size_t size)
 	{
-		T sum = data[0];
+		numeric_t sum = data[0];
 		for (int i = 1; i < size; i++) {
 			sum += data[i];
 		}
-		T avg = sum / size;
+		numeric_t avg = sum / size;
 		return avg;
 	}
 
-	GENERIC range(T const *data, size_t size)
+	numeric_t range(numeric_t const *data, size_t size)
 	{
-		T min = min(data, size);
-		T max = max(data, size);
-		T rng = max - min;
+		numeric_t min = min(data, size);
+		numeric_t max = max(data, size);
+		numeric_t rng = max - min;
 		return rng;
 	}
 

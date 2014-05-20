@@ -6,11 +6,11 @@
 namespace landsat
 {
 
-	GENERIC min(T const *data, size_t size);
-	GENERIC max(T const *data, size_t size);
-	GENERIC median(T const *data, size_t size);
-	GENERIC mode(T const *data, size_t size);
-	GENERIC mean(T const *data, size_t size);
-	GENERIC range(T const *data, size_t size);
+	numeric_t min(numeric_t const *data, size_t size);
+	numeric_t max(numeric_t const *data, size_t size);
+	numeric_t median(numeric_t const *data, size_t size);
+	numeric_t mode(numeric_t const *data, size_t size);
+	numeric_t mean(numeric_t const *data, size_t size);
+	numeric_t range(numeric_t const *data, size_t size);
 
 }
