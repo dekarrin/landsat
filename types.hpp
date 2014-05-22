@@ -84,4 +84,17 @@ namespace landsat
 
 	typedef double numeric_t;
 	typedef array<numeric_t> numeric_array;
+
+	struct linear_eq
+	{
+		numeric_t yintercept;
+		numeric_t slope;
+	};
+
+	struct linear_regression
+	{
+		linear_eq eq;
+		numeric_t r2;
+	};
+
 }
