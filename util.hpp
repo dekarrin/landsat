@@ -4,6 +4,6 @@
 
 namespace landsat
 {
-	void swap(numeric_t *x1, numeric_t *x2);
+	void swap(numeric_t &x1, numeric_t &x2);
 }
 

@@ -1,8 +1,5 @@
 #include "sort.hpp"
-#include "util.hpp"
-#include <cstring>
 #include <cstdlib>
-#include <cassert>
 
 namespace landsat
 {
@@ -11,30 +8,34 @@ namespace landsat
 	
 	static int compare_numerics(void const *x1, void const *x2);
 
-	numeric_t *sort(numeric_t const *list, size_t size)
+	numeric_array *sort_const(numeric_array const &list)
 	{
-		numeric_t *sorted = (numeric_t *)malloc(sizeof(numeric_t) * size);
-		memcpy(sorted, list, sizeof(numeric_t) * size);
-		if (size >= QS_MIN_SIZE) {
-			quicksort(sorted, size);
-		} else {
-			insertion_sort(sorted, size);
-		}
+		numeric_array *sorted = new numeric_array(list);
+		sort(*sorted);
 		return sorted;
 	}
 
-	void quicksort(numeric_t *list, size_t size)
+	void sort(numeric_array &list)
 	{
-		qsort(list, size, sizeof(numeric_t), &compare_numerics);
+		if (list.size() >= QS_MIN_SIZE) {
+			quicksort(list);
+		} else {
+			insertion_sort(list);
+		}
 	}
 
-	void insertion_sort(numeric_t *list, size_t size)
+	void quicksort(numeric_array &list)
+	{
+		qsort(list.data(), list.size(), list.element_size(), &compare_numerics);
+	}
+
+	void insertion_sort(numeric_array &list)
 	{
 		size_t i, j;
-		for (i = 1; i < size; i++) {
+		for (i = 1; i < list.size(); i++) {
 			j = i;
 			while (j > 0 && list[j - 1] > list[j]) {
-				swap(list + j, list + j - 1);
+				list.swap(j, j - 1);
 				j--;
 			}
 		}
