@@ -1,33 +1,72 @@
 #include "data.hpp"
+#include <cstring>
 #include <iostream>
 #include <tiffio.h>
 
-typedef unsigned short pixel_t;
-
-void get_data(const char *filename)
+namespace landsat
 {
-	TIFFErrorHandler old_handler = TIFFSetWarningHandler(NULL);
-	TIFF *file = TIFFOpen("/home/dekarrin/red.tif", "r");
-	TIFFSetWarningHandler(old_handler);
-	uint16 sto = 0;
-	uint16 bits = 0;
-	uint16 samples;
-	uint16 width;
-	uint16 height;
-	uint16 count = 0;
-	TIFFGetField(file, TIFFTAG_BITSPERSAMPLE, &sto);
-	bits = sto;
-	TIFFGetField(file, TIFFTAG_SAMPLESPERPIXEL, &sto);
-	samples = sto;
-	TIFFGetField(file, TIFFTAG_IMAGELENGTH, &sto);
-	height = sto;
-	TIFFGetField(file, TIFFTAG_IMAGEWIDTH, &sto);
-	width = sto;
-	std::cout << bits << "\n";
-	std::cout << samples << "\n";
-	std::cout << width << "x" << height << std::endl;
-	size_t pixel(bits / 8 * samples);
 
+	struct tiff_t
+	{
+		char *filename;
+		TIFF *handle;
+		uint16 width;
+		uint16 height;
+		uint16 bitdepth;
+		uint16 channels;
+		uint16 planarconfig;
+	};
 
-	TIFFClose(file);
+	grid<pixel_t> *read_tiff(const tiff_t *image, tsample_t sample);
+	tiff_t *open_tiff(const char *filename);
+	void close_tiff(const tiff_t *image);
+
+	grid<pixel_t> *get_data(const char *filename)
+	{
+		tiff_t *image = open_tiff(filename);
+		grid<pixel_t> *data = read_tiff(image, 0);
+		close_tiff(image);
+		delete image;
+		return data;
+	}
+
+	grid<pixel_t> *read_tiff(const tiff_t *image, tsample_t sample)
+	{
+		grid<pixel_t> *img_data = new grid<pixel_t>(image->width, image->height);
+		tsize_t size = TIFFScanlineSize(image->handle);
+		tdata_t buffer = _TIFFmalloc(size);
+		for (uint16 i = 0; i < image->height; i++) {
+			TIFFReadScanline(image->handle, buffer, i, sample);
+			_TIFFmemcpy(img_data->data()[i], buffer, (image->bitdepth / 8) * image->width);
+		}
+		_TIFFfree(buffer);
+		return img_data;
+	}
+
+	void close_tiff(const tiff_t *image)
+	{
+		TIFFClose(image->handle);
+	}
+
+	tiff_t *open_tiff(const char *filename)
+	{
+		tiff_t *image = new tiff_t;
+		image->filename = new char[strlen(filename)];
+		strcpy(image->filename, filename);
+		TIFFErrorHandler old = TIFFSetWarningHandler(NULL);
+		image->handle = TIFFOpen(filename, "r");
+		TIFFSetWarningHandler(old);
+		uint16 buffer;
+		TIFFGetField(image->handle, TIFFTAG_IMAGEWIDTH, &buffer);
+		image->width = buffer;
+		TIFFGetField(image->handle, TIFFTAG_IMAGELENGTH, &buffer);
+		image->height = buffer;
+		TIFFGetField(image->handle, TIFFTAG_BITSPERSAMPLE, &buffer);
+		image->bitdepth = buffer;
+		TIFFGetField(image->handle, TIFFTAG_SAMPLESPERPIXEL, &buffer);
+		image->channels = buffer;
+		TIFFGetField(image->handle, TIFFTAG_PLANARCONFIG, &buffer);
+		image->planarconfig = buffer;
+		return image;
+	}
 }

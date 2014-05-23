@@ -23,3 +23,7 @@ bin/
 
 # Vim swap file
 *.swp
+
+# experimental tiff files
+*.tif
+*.tiff

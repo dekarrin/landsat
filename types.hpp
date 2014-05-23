@@ -82,8 +82,64 @@ namespace landsat
 			}
 	};
 
+	template<typename T>
+	class grid {
+
+		private:
+			T **data_store;
+			size_t data_width;
+			size_t data_height;
+		public:
+			grid(size_t width, size_t height) : data_store(new T*[height]), data_width(width), data_height(height)
+			{
+				for (size_t i = 0; i < data_height; i++) {
+					data_store[i] = new T[width];
+				}
+			}
+
+			~grid()
+			{
+				for (size_t i = 0; i < data_height; i++) {
+					delete data_store[i];
+				}
+				delete data_store;
+			}
+
+			void set(size_t x, size_t y, T value)
+			{
+				(*(data_store + y))[x] = value;
+			}
+
+			T get(size_t x, size_t y) const
+			{
+				return (*(data_store + y))[x];
+			}
+
+			size_t width() const
+			{
+				return data_width;
+			}
+
+			size_t height() const
+			{
+				return data_height;
+			}
+
+			T const *const *data() const
+			{
+				return data_store;
+			}
+
+			T **data()
+			{
+				return data_store;
+			}
+
+	};
+
 	typedef double numeric_t;
 	typedef array<numeric_t> numeric_array;
+	typedef unsigned short pixel_t;
 
 	struct linear_eq
 	{
