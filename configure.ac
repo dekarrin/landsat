@@ -4,6 +4,7 @@
 AC_PREREQ([2.69])
 AC_INIT([landsat-data], [1.0], [dekarrin@outlook.com])
 AM_INIT_AUTOMAKE([landsat-data], [1.0])
+LT_INIT
 
 AC_CONFIG_SRCDIR([src/data.hpp])
 AC_CONFIG_HEADERS([config.h])
