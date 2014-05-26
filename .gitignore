@@ -27,3 +27,24 @@ bin/
 # experimental tiff files
 *.tif
 *.tiff
+
+# GNU build files
+COPYING
+ChangeLog
+INSTALL
+Makefile.in
+Makefile
+aclocal.m4
+autom4te.cache
+config.guess
+config.h.in
+config.h
+config.log
+config.status
+config.sub
+configure
+depcomp
+install-sh
+missing
+ltmain.sh
+
