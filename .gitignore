@@ -47,4 +47,4 @@ depcomp
 install-sh
 missing
 ltmain.sh
-
+m4/
