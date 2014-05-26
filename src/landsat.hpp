@@ -5,7 +5,7 @@
 #define ERR_ARG_COUNT 1
 #define ERR_BAD_FILE 2
 
-void main(int argc, char **argv);
+int main(int argc, char **argv);
 
 namespace landsat
 {
@@ -14,7 +14,7 @@ namespace landsat
 		numeric_t mean;
 		numeric_t stddev;
 		size_t window_size;
-	}
+	};
 
 	void process_images(const char *red, const char *near_infrared);
 	void output_results(const array<regression_stats> &results);

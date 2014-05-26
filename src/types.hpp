@@ -81,6 +81,10 @@ namespace landsat
 				data_store[p2] = temp;
 			}
 	};
+}
+#include <iostream>
+namespace landsat
+{
 
 	template<typename T>
 	class grid {
@@ -99,8 +103,13 @@ namespace landsat
 
 			virtual ~grid()
 			{
-				for (size_t i = 0; i < data_height; i++) {
-					delete data_store[i];
+				std::cout << "called " << std::endl;
+				if (data_height > 0) {
+					for (size_t i = data_height - 1; i != 0; i--) {
+						std::cout << i << std::endl;
+						delete data_store[i];
+					}
+					delete data_store[0];
 				}
 				delete data_store;
 			}
@@ -135,11 +144,6 @@ namespace landsat
 				return data_store;
 			}
 
-			virtual subgrid *sub(size_t x, size_t y, size_t width, size_t height)
-			{
-				return new subgrid(x, y, width, height, this);
-			}
-
 	};
 
 	template<typename T>
@@ -153,7 +157,7 @@ namespace landsat
 			size_t sub_y;
 
 		public:
-			subgrid(size_t x, size_t y, size_t width, size_t height, grid<T> *original) : base(0, 0), original_grid(original), sub_width(width), sub_height(height), sub_x(x), sub_y(y)
+			subgrid(size_t x, size_t y, size_t width, size_t height, grid<T> *original) : grid<T>(0, 0), original_grid(original), sub_width(width), sub_height(height), sub_x(x), sub_y(y)
 			{
 			}
 
@@ -164,7 +168,7 @@ namespace landsat
 
 			virtual T get(size_t x, size_t y) const
 			{
-				return original_grid->get(sub_x + x, sub_y + y):
+				return original_grid->get(sub_x + x, sub_y + y);
 			}
 
 			virtual size_t width() const
@@ -192,7 +196,7 @@ namespace landsat
 				return data();
 			}
 
-			virtual T **data() const
+			virtual T **data()
 			{
 				T **orig_row_start = (original_grid->data()) + sub_y;
 				T **data_ptr;
@@ -205,7 +209,7 @@ namespace landsat
 					data_ptr = orig_row_start;
 				}
 			}
-	}
+	};
 
 	typedef double numeric_t;
 	typedef array<numeric_t> numeric_array;
