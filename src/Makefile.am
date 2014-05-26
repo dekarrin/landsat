@@ -10,4 +10,4 @@ libsort_la_SOURCES=sort.cpp sort.hpp
 bin_PROGRAMS=test landsat
 test_SOURCES=test.cpp
 landsat_SOURCES=landsat.cpp
-landsat_LDADD=-ltiff
+landsat_LDADD=${LDADD} -ltiff

@@ -48,3 +48,11 @@ install-sh
 missing
 ltmain.sh
 m4/
+libtool
+src/.deps/
+src/.libs/
+stamp-h1
+
+# Binaries
+/src/landsat
+/src/test
