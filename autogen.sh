@@ -83,6 +83,6 @@ echo >> ChangeLog # git log uses newline as separator between entries, so the la
 run_program $LIBTOOLIZE --force --copy
 run_program $ACLOCAL
 run_program $AUTOHEADER
-run_program $AUTOMAKE --add-missing
+run_program $AUTOMAKE --add-missing --copy
 run_program $AUTOCONF 
 
