@@ -6,11 +6,14 @@
 # $LIBTOOLIZE, $ACLOCAL, $AUTOHEADER, $AUTOMAKE, and $AUTOCONF may each be set in the parent
 # environment to use their contents rather than the defaults.
 
-LIBTOOLIZE_NAMES=$LIBTOOLIZE libtoolize glibtoolize
-ACLOCAL_NAMES=$ACLOCAL aclocal
-AUTOHEADER_NAMES=$AUTOHEADER autoheader
-AUTOMAKE_NAMES=$AUTOMAKE automake
-AUTOCONF_NAMES=$AUTOCONF autoconf
+LIBTOOLIZE_NAMES="$LIBTOOLIZE libtoolize glibtoolize"
+ACLOCAL_NAMES="$ACLOCAL aclocal"
+AUTOHEADER_NAMES="$AUTOHEADER autoheader"
+AUTOMAKE_NAMES="$AUTOMAKE automake"
+AUTOCONF_NAMES="$AUTOCONF autoconf"
+
+export status
+export working_program
 
 # quick func for getting maximum of two numbers
 num_max ()
@@ -32,39 +35,42 @@ check_program ()
 		status="$?"
 		if test "$status" = 0
 		then
-			working_program=$attempt
+			working_program="$attempt"
 			break
 		fi
 	done
 	if test -z "$working_program"
 	then
-		echo "Error: could not find a valid program in ($@)"
+		echo "Error: could not find a valid program in ("$@")"
 	fi
-	echo $working_program
 }
 
 run_program ()
 {
-	echo "$@ ..."
-	"$@" || { echo "Error: $1 failed."; exit 1; }
+	echo
+	echo "Running $@"
+	$@ || { echo "Error: $1 failed."; exit 1; }
 }
 
-terminate=0
+terminate="0"
 
-export status
+check_program $LIBTOOLIZE_NAMES
+LIBTOOLIZE="$working_program"
+terminate=$(num_max $status $terminate)
+check_program $ACLOCAL_NAMES
+ACLOCAL="$working_program"
+terminate=$(num_max $status $terminate)
+check_program $AUTOHEADER_NAMES
+AUTOHEADER="$working_program"
+terminate=$(num_max $status $terminate)
+check_program $AUTOMAKE_NAMES
+AUTOMAKE="$working_program"
+terminate=$(num_max $status $terminate)
+check_program $AUTOCONF_NAMES
+AUTOCONF="$working_program"
+terminate=$(num_max $status $terminate)
 
-LIBTOOLIZE=$(check_program "$LIBTOOLIZE_NAMES")
-terminate=$(num_max $status $terminate)
-ACLOCAL=$(check_program "$ACLOCAL_NAMES")
-terminate=$(num_max $status $terminate)
-AUTOHEADER=$(check_program "$AUTOHEADER_NAMES")
-terminate=$(num_max $status $terminate)
-AUTOMAKE=$(check_program "$AUTOMAKE_NAMES")
-terminate=$(num_max $status $terminate)
-AUTOCONF=$(check_program "$AUTOCONF_NAMES")
-terminate=$(num_max $status $terminate)
-
-if test "$terminate" = 1
+if test "$terminate" != 0
 then
 	echo "Program check failed."
 	exit 1
@@ -74,7 +80,6 @@ fi
 
 git log --date=short --format=format:"%ad %an%n%n	* %s%n" > ChangeLog
 echo >> ChangeLog # git log uses newline as separator between entries, so the last one will not have one
-
 run_program $LIBTOOLIZE --force --copy
 run_program $ACLOCAL
 run_program $AUTOHEADER
