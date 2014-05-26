@@ -97,7 +97,7 @@ namespace landsat
 				}
 			}
 
-			~grid()
+			virtual ~grid()
 			{
 				for (size_t i = 0; i < data_height; i++) {
 					delete data_store[i];
@@ -105,37 +105,107 @@ namespace landsat
 				delete data_store;
 			}
 
-			void set(size_t x, size_t y, T value)
+			virtual void set(size_t x, size_t y, T value)
 			{
 				(*(data_store + y))[x] = value;
 			}
 
-			T get(size_t x, size_t y) const
+			virtual T get(size_t x, size_t y) const
 			{
 				return (*(data_store + y))[x];
 			}
 
-			size_t width() const
+			virtual size_t width() const
 			{
 				return data_width;
 			}
 
-			size_t height() const
+			virtual size_t height() const
 			{
 				return data_height;
 			}
 
-			T const *const *data() const
+			virtual T const *const *data() const
 			{
 				return data_store;
 			}
 
-			T **data()
+			virtual T **data()
 			{
 				return data_store;
+			}
+
+			virtual subgrid *sub(size_t x, size_t y, size_t width, size_t height)
+			{
+				return new subgrid(x, y, width, height, this);
 			}
 
 	};
+
+	template<typename T>
+	class subgrid : public grid<T>
+	{
+		private:
+			grid<T> *original_grid;
+			size_t sub_width;
+			size_t sub_height;
+			size_t sub_x;
+			size_t sub_y;
+
+		public:
+			subgrid(size_t x, size_t y, size_t width, size_t height, grid<T> *original) : base(0, 0), original_grid(original), sub_width(width), sub_height(height), sub_x(x), sub_y(y)
+			{
+			}
+
+			virtual void set(size_t x, size_t y, T value)
+			{
+				original_grid->set(sub_x + x, sub_y + y, value);
+			}
+
+			virtual T get(size_t x, size_t y) const
+			{
+				return original_grid->get(sub_x + x, sub_y + y):
+			}
+
+			virtual size_t width() const
+			{
+				return sub_width;
+			}
+
+			virtual size_t height() const
+			{
+				return sub_height;
+			}
+
+			virtual size_t x() const
+			{
+				return sub_x;
+			}
+
+			virtual size_t y() const
+			{
+				return sub_y;
+			}
+
+			virtual T const *const *data() const
+			{
+				return data();
+			}
+
+			virtual T **data() const
+			{
+				T **orig_row_start = (original_grid->data()) + sub_y;
+				T **data_ptr;
+				if (sub_x != 0) {
+					data_ptr = new T*[height()];
+					for (size_t i = 0; i < height(); i++) {
+						*(data_ptr + i) = (*(orig_row_start + i)) + sub_x;
+					}
+				} else {
+					data_ptr = orig_row_start;
+				}
+			}
+	}
 
 	typedef double numeric_t;
 	typedef array<numeric_t> numeric_array;
