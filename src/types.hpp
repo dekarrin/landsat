@@ -81,132 +81,25 @@ namespace landsat
 				data_store[p2] = temp;
 			}
 	};
-}
-#include <iostream>
-namespace landsat
-{
-
-	template<typename T>
-	class grid {
-
-		private:
-			T **data_store;
-			size_t data_width;
-			size_t data_height;
-		public:
-			grid(size_t width, size_t height) : data_store(new T*[height]), data_width(width), data_height(height)
-			{
-				for (size_t i = 0; i < data_height; i++) {
-					data_store[i] = new T[width];
-				}
-			}
-
-			virtual ~grid()
-			{
-				std::cout << "called " << std::endl;
-				if (data_height > 0) {
-					for (size_t i = data_height - 1; i != 0; i--) {
-						std::cout << i << std::endl;
-						delete data_store[i];
-					}
-					delete data_store[0];
-				}
-				delete data_store;
-			}
-
-			virtual void set(size_t x, size_t y, T value)
-			{
-				(*(data_store + y))[x] = value;
-			}
-
-			virtual T get(size_t x, size_t y) const
-			{
-				return (*(data_store + y))[x];
-			}
-
-			virtual size_t width() const
-			{
-				return data_width;
-			}
-
-			virtual size_t height() const
-			{
-				return data_height;
-			}
-
-			virtual T const *const *data() const
-			{
-				return data_store;
-			}
-
-			virtual T **data()
-			{
-				return data_store;
-			}
-
-	};
-
-	template<typename T>
-	class subgrid : public grid<T>
+	
+	template <typename T>
+	struct grid
 	{
-		private:
-			grid<T> *original_grid;
-			size_t sub_width;
-			size_t sub_height;
-			size_t sub_x;
-			size_t sub_y;
-
 		public:
-			subgrid(size_t x, size_t y, size_t width, size_t height, grid<T> *original) : grid<T>(0, 0), original_grid(original), sub_width(width), sub_height(height), sub_x(x), sub_y(y)
-			{
-			}
+			T *data;
+			size_t width;
+			size_t height;
+			bool is_sub;
+			grid(size_t width, size_t height) : data(new T[width * height]), width(width), height(height), is_sub(false)
+			{}
 
-			virtual void set(size_t x, size_t y, T value)
-			{
-				original_grid->set(sub_x + x, sub_y + y, value);
-			}
+			grid(grid<T> *old_grid, size_t x, size_t y, size_t width, size_t height) : data(old_grid->data + (old_grid->height * y) + x), width(width), height(height), is_sub(true)
+			{}
 
-			virtual T get(size_t x, size_t y) const
+			~grid()
 			{
-				return original_grid->get(sub_x + x, sub_y + y);
-			}
-
-			virtual size_t width() const
-			{
-				return sub_width;
-			}
-
-			virtual size_t height() const
-			{
-				return sub_height;
-			}
-
-			virtual size_t x() const
-			{
-				return sub_x;
-			}
-
-			virtual size_t y() const
-			{
-				return sub_y;
-			}
-
-			virtual T const *const *data() const
-			{
-				return data();
-			}
-
-			virtual T **data()
-			{
-				T **orig_row_start = (original_grid->data()) + sub_y;
-				T **data_ptr;
-				if (sub_x != 0) {
-					data_ptr = new T*[height()];
-					for (size_t i = 0; i < height(); i++) {
-						*(data_ptr + i) = (*(orig_row_start + i)) + sub_x;
-					}
-				} else {
-					data_ptr = orig_row_start;
+				if (!is_sub) {
+					delete data;
 				}
 			}
 	};

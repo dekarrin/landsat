@@ -37,7 +37,7 @@ namespace landsat
 		tdata_t buffer = _TIFFmalloc(size);
 		for (uint16 i = 0; i < image->height; i++) {
 			TIFFReadScanline(image->handle, buffer, i, sample);
-			_TIFFmemcpy(img_data->data()[i], buffer, (image->bitdepth / 8) * image->width);
+			_TIFFmemcpy(img_data->data + (i * image->width), buffer, (image->bitdepth / 8) * image->width);
 		}
 		_TIFFfree(buffer);
 		return img_data;
