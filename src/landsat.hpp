@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hpp"
+#include "defs.hpp"
 
 #define ERR_ARG_COUNT 1
 #define ERR_BAD_FILE 2

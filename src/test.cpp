@@ -1,13 +1,12 @@
+#include "test.hpp"
+
 #include "stats.hpp"
-#include "types.hpp"
 #include <iostream>
 #include <cstddef>
 #include <iomanip>
 
 using landsat::numeric_t;
 using landsat::numeric_array;
-
-void print_arr(numeric_array &data);
 
 int main(int argc, char **argv)
 {

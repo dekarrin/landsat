@@ -8,6 +8,7 @@
 
 int main(int argc, char **argv)
 {
+	std::cout << VERSION << std::endl;
 	if (argc < 3) {
 		std::cerr << "usage: " << argv[0] << " [red-image] [near-infrared-image]" << std::endl;
 		return ERR_ARG_COUNT;
