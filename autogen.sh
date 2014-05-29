@@ -3,18 +3,14 @@
 # Generates build files
 #
 # Defaults for Autotools may be overrided by setting the environment variable for that program.
-# $LIBTOOLIZE, $ACLOCAL, $AUTOHEADER, $AUTOMAKE, $AUTOCONF, and $DELETE_CMD may each be set in
-# the parent environment to use their contents rather than the defaults.
-#
-# $DELETE_CMD will default to 'tr'. Anything that replaces it must support the deletion of
-# characters with the -d [char] option.
+# $LIBTOOLIZE, $ACLOCAL, $AUTOHEADER, $AUTOMAKE, and $AUTOCONF may each be set in the parent
+# environment to use their contents rather than the defaults.
 
 LIBTOOLIZE_NAMES="$LIBTOOLIZE libtoolize glibtoolize"
 ACLOCAL_NAMES="$ACLOCAL aclocal"
 AUTOHEADER_NAMES="$AUTOHEADER autoheader"
 AUTOMAKE_NAMES="$AUTOMAKE automake"
 AUTOCONF_NAMES="$AUTOCONF autoconf"
-DELETE_CMD_NAMES="$DELETE_CMD tr"
 
 export status
 export working_program
@@ -56,11 +52,28 @@ run_program ()
 	$@ || { echo "Error: $1 failed."; exit 1; }
 }
 
+if test "x$1" = "x-f" -o "x$1" = "x--force"
+then
+	force=1
+fi
+
 terminate="0"
 
-check_program $DELETE_CMD_NAMES
-DELETE_CMD="$working_program"
+# tr is used inside of configure.ac to pick up the version number
+check_program tr
 terminate=$(num_max $status $terminate)
+if test "$terminate" = 1
+then
+	if test "x$force" = "x1"
+	then
+		echo "Could not find tr on this system; program versioning cannot be automated."
+		echo "Replace the second argument to AC_INIT in configure.ac with the number in the file VERSION"
+		echo "and execute this script with either -f or --force to retry."
+	else
+		terminate=0
+	fi
+fi
+
 check_program $LIBTOOLIZE_NAMES
 LIBTOOLIZE="$working_program"
 terminate=$(num_max $status $terminate)
