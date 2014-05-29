@@ -1,6 +1,5 @@
 #include "test.hpp"
 
-#include "stats.hpp"
 #include <iostream>
 #include <cstddef>
 #include <iomanip>

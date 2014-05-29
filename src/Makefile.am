@@ -1,13 +1,14 @@
 CFLAGS=-Wall
 LDADD=libstats.la libsort.la libdata.la
-AM_LDFLAGS=
+AM_LDFLAGS=-static
 
-lib_LTLIBRARIES=libstats.la libsort.la libdata.la
-libdata_la_SOURCES=data.cpp data.hpp
-libstats_la_SOURCES=stats.cpp stats.hpp
-libsort_la_SOURCES=sort.cpp sort.hpp
+noinst_LTLIBRARIES=libstats.la libsort.la libdata.la libparse.la
+libdata_la_SOURCES=data.cpp
+libstats_la_SOURCES=stats.cpp
+libsort_la_SOURCES=sort.cpp
+libparse_la_SOURCES=parse.cpp
 
 bin_PROGRAMS=test landsat
 test_SOURCES=test.cpp
 landsat_SOURCES=landsat.cpp
-landsat_LDADD=${LDADD} -ltiff
+landsat_LDADD=${LDADD} libparse.la -ltiff

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defs.hpp"
+#include "stats.hpp"
 #include <cstddef>
 
 namespace landsat

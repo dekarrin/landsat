@@ -1,9 +1,19 @@
 #pragma once
 
 #include <cstddef>
+#include <iostream>
 
 namespace landsat
 {
+	
+	struct rect
+	{
+		int x;
+		int y;
+		int width;
+		int height;
+	};
+
 	template<typename T>
 	class array
 	{
@@ -46,12 +56,22 @@ namespace landsat
 
 			T &operator[](size_t index)
 			{
-				return data_store[index];
+				if (index < data_size && index >= 0) {
+					return data_store[index];
+				} else {
+					// deliberate segfault if illegal access
+					return *(static_cast<T*>(NULL));
+				}
 			}
 
 			T const &operator[](size_t index) const
 			{
-				return data_store[index];
+				if (index < data_size && index >= 0) {
+					return data_store[index];
+				} else {
+					// deliberate segfault if illegal access
+					return *(static_cast<T*>(NULL));
+				}
 			}
 
 			T *data()
@@ -93,7 +113,7 @@ namespace landsat
 			grid(size_t width, size_t height) : data(new T[width * height]), width(width), height(height), is_sub(false)
 			{}
 
-			grid(grid<T> *old_grid, size_t x, size_t y, size_t width, size_t height) : data(old_grid->data + (old_grid->height * y) + x), width(width), height(height), is_sub(true)
+			grid(grid<T> *old_grid, rect const &sub) : data(old_grid->data + (old_grid->height * sub.y) + sub.x), width(sub.width), height(sub.height), is_sub(true)
 			{}
 
 			~grid()
@@ -102,22 +122,6 @@ namespace landsat
 					delete data;
 				}
 			}
-	};
-
-	typedef double numeric_t;
-	typedef array<numeric_t> numeric_array;
-	typedef unsigned short pixel_t;
-
-	struct linear_eq
-	{
-		numeric_t yintercept;
-		numeric_t slope;
-	};
-
-	struct linear_regression
-	{
-		linear_eq eq;
-		numeric_t r2;
 	};
 
 }
