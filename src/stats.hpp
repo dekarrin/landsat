@@ -10,7 +10,7 @@ namespace landsat
 
 	struct linear_eq
 	{
-		numeric_t yintercept;
+		numeric_t intercept;
 		numeric_t slope;
 	};
 

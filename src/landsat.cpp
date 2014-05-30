@@ -196,6 +196,7 @@ namespace landsat
 		regression_stats *stats = new regression_stats;
 		// first, filter out the bad ones
 		IF_VERBOSE(std::cout << "Found " << good_count << " good sectors out of " << window_count << std::endl);
+		std::cout << good_count << ", " << window_count << std::endl;
 		numeric_array good_data(good_count);
 		numeric_t *good_data_ptr = good_data.data();
 		for (size_t i = 0; i < window_count; i++) {
@@ -213,15 +214,22 @@ namespace landsat
 	bool is_good_data(const grid<pixel_t> &red, const grid<pixel_t> &nir)
 	{
 		bool has_nonzero = false;
+		bool diff_x = false; // at least one x MUST be different from the others
+		pixel_t initial = red.get(0, 0);
 		for (size_t y = 0; y < red.height(); y++) {
 			for (size_t x = 0; x < red.width(); x++) {
-				if (red.get(x, y) != 0 || nir.get(x, y) != 0) {
+				if (!diff_x && red.get(x, y) != initial) {
+					diff_x = true;
+				}
+				if (!has_nonzero && red.get(x, y) != 0 || nir.get(x, y) != 0) {
 					has_nonzero = true;
+				}
+				if (diff_x && has_nonzero) {
 					break;
 				}
 			}
 		}
-		return has_nonzero;
+		return (has_nonzero && diff_x);
 	}
 
 	linear_regression *get_regression(const grid<pixel_t> &red, const grid<pixel_t> &nir)
@@ -234,17 +242,19 @@ namespace landsat
 				nir_data[(y * nir.width()) + x] = nir.get(x, y);
 			}
 		}
-		return find_linear_regression(red_data, nir_data);
+		linear_regression *reg = find_linear_regression(red_data, nir_data);
+		
+		return reg;
 	}
 
 	array<regression_stats> *get_all_window_regression_stats(const grid<pixel_t> &red, const grid<pixel_t> &nir)
 	{
 		size_t window_base = 2;
-		size_t size_count = (size_t) ((log(red.width()) / log(window_base)) + 1);
+		size_t size_count = (size_t) ((log(red.width()) / log(window_base)) - 1);
 		array<regression_stats> *all_stats = new array<regression_stats>(size_count);
 		size_t pos = 0;
 		// we only do powers of two:
-		for (size_t window_size = 1; window_size < red.height(); window_size *= window_base) {
+		for (size_t window_size = 2; window_size * 2 < red.height(); window_size *= window_base) {
 			IF_NORMAL(std::cout << "Checking window size " << window_size << "..." << std::endl);
 			regression_stats *stats = get_window_regression_stats(red, nir, window_size);
 			(*all_stats)[pos++] = *stats;

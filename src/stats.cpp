@@ -6,6 +6,7 @@
 
 namespace landsat {
 
+	bool check_horizontal_fit(linear_regression &reg, numeric_array const &xdata, numeric_array const &ydata);
 	numeric_t residual_sum_squares(linear_eq const &model, numeric_array const &xdata, numeric_array const &ydata);
 	numeric_t total_sum_squares(numeric_array const &data);
 
@@ -68,7 +69,10 @@ namespace landsat {
 
 	numeric_t mean(numeric_array const &data)
 	{
-		numeric_t avg = sum(data) / data.size();
+		numeric_t avg = 0;
+		for (size_t i = 0; i < data.size(); i++) {
+			avg += data[i] / data.size();
+		}
 		return avg;
 	}
 
@@ -146,18 +150,56 @@ namespace landsat {
 	linear_regression *find_linear_regression(numeric_array const &xdata, numeric_array const &ydata)
 	{
 		// uses ordinary least squares
+			
 		linear_regression *regression = new linear_regression;
-		numeric_t r = correlation(xdata, ydata);
-		numeric_t xm = mean(xdata);
-		numeric_t ym = mean(ydata);
-		numeric_t xs = stddev(xdata);
-		numeric_t ys = stddev(ydata);
-		regression->eq.slope = r * (ys / xs);
-		regression->eq.yintercept = ym - regression->eq.slope * xm;
-		numeric_t ss_res = residual_sum_squares(regression->eq, xdata, ydata);
-		numeric_t ss_tot = total_sum_squares(ydata);
-		regression->r2 = 1 - (ss_res / ss_tot);
+		// first test the special case of a horizontal fit:
+		if (!check_horizontal_fit(*regression, xdata, ydata)) {
+			numeric_t r = correlation(xdata, ydata);
+			numeric_t xm = mean(xdata);
+			numeric_t ym = mean(ydata);
+			numeric_t xs = stddev(xdata);
+			numeric_t ys = stddev(ydata);
+			regression->eq.slope = r * (ys / xs);
+			regression->eq.intercept = ym - regression->eq.slope * xm;
+			numeric_t ss_res = residual_sum_squares(regression->eq, xdata, ydata);
+			numeric_t ss_tot = total_sum_squares(ydata);
+			regression->r2 = 1 - (ss_res / ss_tot);
+		}
 		return regression;
+	}
+
+	bool check_horizontal_fit(linear_regression &reg, numeric_array const &xdata, numeric_array const &ydata)
+	{
+		bool is_horz = true;
+		numeric_t initial = ydata[0];
+		for (size_t i = 1; i < ydata.size(); i++) {
+			if (ydata[i] != initial) {
+				is_horz = false;
+				break;
+			}
+		}
+		if (is_horz) {
+			// if at least two data points are different, we have a horizontal correlation
+			bool x_is_same = true;
+			numeric_t initialx = xdata[0];
+			for (size_t i = 1; i < xdata.size(); i++) {
+				if (xdata[i] != initial) {
+					x_is_same = false;
+					break;
+				}
+			}
+			if (!x_is_same) {
+				reg.r2 = 1;
+				reg.eq.slope = 0;
+				reg.eq.intercept = ydata[0];
+			} else {
+				// the data collapses to one point; impossible to regress
+				reg.r2 = 0.0/0.0;
+				reg.eq.slope = 0.0/0.0;
+				reg.eq.intercept = 0.0/0.0;
+			}
+		}
+		return is_horz;
 	}
 
 	numeric_t residual_sum_squares(linear_eq const &model, numeric_array const &xdata, numeric_array const &ydata)
@@ -168,7 +210,7 @@ namespace landsat {
 			numeric_t x, y;
 			x = (xdata.size() < highsize) ? 0 : xdata[i];
 			y = (ydata.size() < highsize) ? 0 : ydata[i];
-			numeric_t res = y - (model.slope * x + model.yintercept);
+			numeric_t res = y - (model.slope * x + model.intercept);
 			sm += pow(res, 2);
 		}
 		return sm;

@@ -41,10 +41,10 @@ int main(int argc, char **argv)
 	std::cout << "X-Y correlation: " << correlation << std::endl;
 	std::cout << std::setprecision(8);
 	std::cout << "Line of best fit: y = " << reg->eq.slope;
-	if (reg->eq.yintercept > 0) {
-		std::cout << "x + " << reg->eq.yintercept;
-	} else if (reg->eq.yintercept < 0) {
-		std::cout << "x - " << (reg->eq.yintercept * -1);
+	if (reg->eq.intercept > 0) {
+		std::cout << "x + " << reg->eq.intercept;
+	} else if (reg->eq.intercept < 0) {
+		std::cout << "x - " << (reg->eq.intercept * -1);
 	}
 	std::cout << ", R^2 = " << reg->r2 << std::endl;
 	std::cout << std::setprecision(2);

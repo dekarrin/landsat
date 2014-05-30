@@ -180,9 +180,10 @@ namespace landsat
 		char delimiter_str[] = { (char)delimiter, '\0' };
 		size_t loc = strcspn(str, delimiter_str);
 		if (loc != strlen(str)) {
-			char *half_1 = new char[loc];
-			char *half_2 = new char[strlen(str) - (loc + 1)];
+			char *half_1 = new char[loc + 1];
+			char *half_2 = new char[strlen(str) - (loc + 1) + 1];
 			strncpy(half_1, str, loc);
+			half_1[loc] = '\0';
 			strcpy(half_2, str + loc + 1);
 			int conv1, conv2;
 			if (parse_int(half_1, &conv1) && parse_int(half_2, &conv2)) {
