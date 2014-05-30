@@ -103,24 +103,79 @@ namespace landsat
 	};
 	
 	template <typename T>
-	struct grid
+	class grid
 	{
-		public:
-			T *data;
-			size_t width;
-			size_t height;
-			bool is_sub;
-			grid(size_t width, size_t height) : data(new T[width * height]), width(width), height(height), is_sub(false)
-			{}
+		private:
+			T **data_store;
+			size_t data_width;
+			size_t data_height;
+			bool shares_row_stores;
+			bool shares_data_store;
 
-			grid(grid<T> *old_grid, rect const &sub) : data(old_grid->data + (old_grid->height * sub.y) + sub.x), width(sub.width), height(sub.height), is_sub(true)
-			{}
+		public:
+			grid(size_t width, size_t height) : data_store(new T*[height]), data_width(width), data_height(height), shares_row_stores(false), shares_data_store(false)
+			{
+				for (size_t i = 0; i < height; i++) {
+					data_store[i] = new T[width];
+				}
+			}
+
+			grid(grid<T> *old_grid, rect const &sub) : data_store(old_grid->data_store + sub.y), data_width(sub.width), data_height(sub.height), shares_row_stores(true), shares_data_store(true)
+			{
+				if (sub.x != 0) {
+					data_store = new T*[sub.height];
+					shares_data_store = false;
+					for (size_t i = 0; i < data_height; i++) {
+						data_store[i] = (*(old_grid->data_store + sub.y + i)) + sub.x;
+					}
+				}
+			}
 
 			~grid()
 			{
-				if (!is_sub) {
-					delete[] data;
+				if (!shares_data_store) {
+					if (!shares_row_stores) {
+						for (size_t i = 0; i < data_height; i++) {
+							delete[] data_store[i];
+						}
+					}
+					delete[] data_store;
 				}
+			}
+
+			T *row(size_t y)
+			{
+				return data_store[y];
+			}
+
+			T const *row(size_t y) const
+			{
+				return data_store[y];
+			}
+
+			T get(size_t x, size_t y) const
+			{
+				return (data_store[y])[x];
+			}
+
+			void set(size_t x, size_t y, T value)
+			{
+				(data_store[y])[x] = value;
+			}
+
+			size_t width() const
+			{
+				return data_width;
+			}
+
+			size_t height() const
+			{
+				return data_height;
+			}
+
+			bool is_sub() const
+			{
+				return shares_row_stores;
 			}
 	};
 

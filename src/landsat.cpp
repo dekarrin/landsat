@@ -5,7 +5,9 @@
 #include <cstdio>
 #include <cmath>
 #include <cstring>
-
+#include <iomanip>
+#include <string>
+#include <sstream>
 
 int main(int argc, char **argv)
 {
@@ -76,6 +78,27 @@ namespace landsat
 		}
 		return buffer;
 	}
+
+	void print_grid(grid<pixel_t> const &grid)
+	{
+		std::cout << std::setw(8) << std::left;
+		for (size_t y = 0; y < grid.height(); y++) {
+			for (size_t x = 0; x < grid.width(); x++) {
+				if (x + 1 < grid.width()) {
+					std::cout << std::setw(8);
+				}
+				std::ostringstream os;
+				os << "0x" << std::hex << grid.get(x, y);
+				std::cout << std::left << os.str();
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	void print_rect(rect const &r)
+	{
+		std::cout << "{ x=" << r.x << ", y=" << r.y << ", width=" << r.width << ", height=" << r.height << " }" << std::endl;
+	}
 	
 	void process_images(const char *red, const char *near_infrared, rect &window)
 	{
@@ -98,14 +121,14 @@ namespace landsat
 	void translate_window(rect &window, grid<pixel_t> const &data)
 	{
 		if (window.width == 0) {
-			window.width = data.width;
+			window.width = data.width();
 		} else if (window.width < 0) {
-			window.width = data.width + window.width;
+			window.width = data.width() + window.width;
 		}
 		if (window.height == 0) {
-			window.height = data.height;
+			window.height = data.height();
 		} else if (window.height < 0) {
-			window.height = data.height + window.height;
+			window.height = data.height() + window.height;
 		}
 		if (window.x < 0) {
 			window.width += window.x;
@@ -114,6 +137,12 @@ namespace landsat
 		if (window.y < 0) {
 			window.height += window.y;
 			window.y = 0;
+		}
+		if (window.x + window.width > data.width()) {
+			window.width = data.width() - window.x;
+		}
+		if (window.y + window.height > data.height()) {
+			window.height = data.height() - window.y;
 		}
 	}
 
@@ -129,17 +158,17 @@ namespace landsat
 	regression_stats *get_window_regression_stats(const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size)
 	{
 		size_t output_block = 100;
-		size_t row_count = (red.height / size);
+		size_t row_count = (red.height() / size);
 		IF_NORMAL(std::cout << row_count << " rows" << std::endl);
-		size_t window_count = (red.width / size) * row_count;
+		size_t window_count = (red.width() / size) * row_count;
 		numeric_array slopes(window_count);
 		array<bool> slopes_goodness(window_count);
 		numeric_t *ptr = slopes.data();
 		bool *ptr_goodness = slopes_goodness.data();
 		size_t good_count = 0;
-		rect subr = {0, 0, size, size};
-		for (subr.y = 0; subr.y + size <= red.height && subr.y + size <= nir.height; subr.y += size) {
-			for (subr.x = 0; subr.x + size <= red.width && subr.x + size <= nir.width; subr.x += size) {
+		rect subr = {0, 0, static_cast<int>(size), static_cast<int>(size)};
+		for (subr.y = 0; subr.y + size <= red.height() && subr.y + size <= nir.height(); subr.y += size) {
+			for (subr.x = 0; subr.x + size <= red.width() && subr.x + size <= nir.width(); subr.x += size) {
 				grid<pixel_t> const *red_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&red), subr);
 				grid<pixel_t> const *nir_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&nir), subr);
 				if (is_good_data(*red_sub, *nir_sub)) {
@@ -148,6 +177,7 @@ namespace landsat
 					*ptr_goodness = true;
 					delete reg;
 				} else {
+					IF_VERBOSE(std::cout << "Bad sector: (" << subr.x << ", " << subr.y << ") ");
 					*ptr_goodness = false;
 				}
 				good_count++;
@@ -156,8 +186,8 @@ namespace landsat
 				delete red_sub;
 				delete nir_sub;
 			}
-			if (subr.y % output_block == 0) {
-				IF_NORMAL(std::cout << "\ranalyzing rows starting at " << subr.y << "...");
+			if ((subr.y / size) % output_block == 0) {
+				IF_NORMAL(std::cout << "\ranalyzing rows starting at " << (subr.y / size) << "...");
 				IF_NORMAL(std::cout.flush());
 			}
 		}
@@ -183,28 +213,25 @@ namespace landsat
 	bool is_good_data(const grid<pixel_t> &red, const grid<pixel_t> &nir)
 	{
 		bool has_nonzero = false;
-		for (size_t y = 0; y < red.height; y++) {
-			for (size_t x = 0; x < red.height; x++) {
-				if (red.data[(y * red.width) + x] != 0 || nir.data[(y * nir.width) + x] != 0) {
+		for (size_t y = 0; y < red.height(); y++) {
+			for (size_t x = 0; x < red.width(); x++) {
+				if (red.get(x, y) != 0 || nir.get(x, y) != 0) {
 					has_nonzero = true;
 					break;
 				}
 			}
-		}
-		if (!has_nonzero) {
-			IF_VERBOSE(std::cout << "Found bad sector" << std::endl);
 		}
 		return has_nonzero;
 	}
 
 	linear_regression *get_regression(const grid<pixel_t> &red, const grid<pixel_t> &nir)
 	{
-		numeric_array red_data(red.width * red.height);
-		numeric_array nir_data(nir.width * nir.height);
-		for (size_t y = 0; y < red.width; y++) {
-			for (size_t x = 0; x < red.height; x++) {
-				red_data[(y * red.width) + x] = red.data[(y * red.width) + x];
-				nir_data[(y * nir.width) + x] = nir.data[(y * nir.width) + x];
+		numeric_array red_data(red.width() * red.height());
+		numeric_array nir_data(nir.width() * nir.height());
+		for (size_t y = 0; y < red.width(); y++) {
+			for (size_t x = 0; x < red.height(); x++) {
+				red_data[(y * red.width()) + x] = red.get(x, y);
+				nir_data[(y * nir.width()) + x] = nir.get(x, y);
 			}
 		}
 		return find_linear_regression(red_data, nir_data);
@@ -213,11 +240,11 @@ namespace landsat
 	array<regression_stats> *get_all_window_regression_stats(const grid<pixel_t> &red, const grid<pixel_t> &nir)
 	{
 		size_t window_base = 2;
-		size_t size_count = (size_t) ((log(red.width) / log(window_base)) + 1);
+		size_t size_count = (size_t) ((log(red.width()) / log(window_base)) + 1);
 		array<regression_stats> *all_stats = new array<regression_stats>(size_count);
 		size_t pos = 0;
 		// we only do powers of two:
-		for (size_t window_size = 1; window_size < red.height; window_size *= window_base) {
+		for (size_t window_size = 1; window_size < red.height(); window_size *= window_base) {
 			IF_NORMAL(std::cout << "Checking window size " << window_size << "..." << std::endl);
 			regression_stats *stats = get_window_regression_stats(red, nir, window_size);
 			(*all_stats)[pos++] = *stats;

@@ -26,6 +26,8 @@ namespace landsat
 
 	void print_help(const char *progname);
 	void print_version();
+	void print_grid(grid<pixel_t> const &g);
+	void print_rect(rect const &r);
 	const char *usage(const char *progname);
 	void translate_window(rect &window, grid<pixel_t> const &data);
 	bool is_good_data(grid<pixel_t> const &red, grid<pixel_t> const &nir);
