@@ -196,7 +196,6 @@ namespace landsat
 		regression_stats *stats = new regression_stats;
 		// first, filter out the bad ones
 		IF_VERBOSE(std::cout << "Found " << good_count << " good sectors out of " << window_count << std::endl);
-		std::cout << good_count << ", " << window_count << std::endl;
 		numeric_array good_data(good_count);
 		numeric_t *good_data_ptr = good_data.data();
 		for (size_t i = 0; i < window_count; i++) {
