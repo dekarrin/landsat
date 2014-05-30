@@ -26,6 +26,7 @@ namespace landsat
 		tiff_t *image = open_tiff(filename);
 		grid<pixel_t> *data = read_tiff(image, 0);
 		close_tiff(image);
+		delete[] image->filename;
 		delete image;
 		return data;
 	}
@@ -51,7 +52,7 @@ namespace landsat
 	tiff_t *open_tiff(const char *filename)
 	{
 		tiff_t *image = new tiff_t;
-		image->filename = new char[strlen(filename)];
+		image->filename = new char[strlen(filename) + 1];
 		strcpy(image->filename, filename);
 		TIFFErrorHandler old = TIFFSetWarningHandler(NULL);
 		image->handle = TIFFOpen(filename, "r");

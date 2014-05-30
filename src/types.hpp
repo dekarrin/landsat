@@ -119,7 +119,7 @@ namespace landsat
 			~grid()
 			{
 				if (!is_sub) {
-					delete data;
+					delete[] data;
 				}
 			}
 	};
