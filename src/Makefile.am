@@ -1,4 +1,5 @@
-CFLAGS=-Wall
+AM_CFLAGS=-Wall
+AM_CXXFLAGS=${AM_CFLAGS}
 LDADD=libstats.la libsort.la libdata.la
 AM_LDFLAGS=-static
 
