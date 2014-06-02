@@ -235,7 +235,7 @@ namespace landsat
 				grid<pixel_t> const *red_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&red), subr);
 				grid<pixel_t> const *nir_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&nir), subr);
 				if (is_good_data(*red_sub, *nir_sub)) {
-					linear_regression *reg = get_regression(*red_sub, *nir_sub);
+					linear_regression *reg = find_linear_regression(*red_sub, *nir_sub);
 					*ptr = reg->eq.slope;
 					*ptr_goodness = true;
 					good_count++;
@@ -291,21 +291,6 @@ namespace landsat
 			}
 		}
 		return (has_nonzero && diff_x);
-	}
-
-	linear_regression *get_regression(const grid<pixel_t> &red, const grid<pixel_t> &nir)
-	{
-		numeric_array red_data(red.width() * red.height());
-		numeric_array nir_data(nir.width() * nir.height());
-		for (size_t y = 0; y < red.width(); y++) {
-			for (size_t x = 0; x < red.height(); x++) {
-				red_data[(y * red.width()) + x] = red.get(x, y);
-				nir_data[(y * nir.width()) + x] = nir.get(x, y);
-			}
-		}
-		linear_regression *reg = find_linear_regression(red_data, nir_data);
-		
-		return reg;
 	}
 
 	array<regression_stats> *get_all_window_regression_stats(const grid<pixel_t> &red, const grid<pixel_t> &nir)

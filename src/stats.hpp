@@ -6,7 +6,8 @@
 namespace landsat
 {
 	typedef double numeric_t;
-	typedef array<numeric_t> numeric_array;
+	typedef sequence<pixel_t> numeric_seq;
+	typedef array<pixel_t> numeric_array;
 
 	struct linear_eq
 	{
@@ -20,18 +21,18 @@ namespace landsat
 		numeric_t r2;
 	};
 
-	numeric_t min(numeric_array const &data);
-	numeric_t max(numeric_array const &data);
-	numeric_t median(numeric_array const &data);
-	numeric_t mode(numeric_array const &data);
-	numeric_t mean(numeric_array const &data);
-	numeric_t range(numeric_array const &data);
-	numeric_t sum(numeric_array const &data);
-	numeric_t var(numeric_array const &data);
-	numeric_t var_pop(numeric_array const &data);
-	numeric_t stddev(numeric_array const &data);
-	numeric_t stddev_pop(numeric_array const &data);
-	numeric_t correlation(numeric_array const &xdata, numeric_array const &ydata);
-	linear_regression *find_linear_regression(numeric_array const &xdata, numeric_array const &ydata);
+	numeric_t min(numeric_seq const &data);
+	numeric_t max(numeric_seq const &data);
+	numeric_t median(numeric_seq const &data);
+	numeric_t mode(numeric_seq const &data);
+	numeric_t mean(numeric_seq const &data);
+	numeric_t range(numeric_seq const &data);
+	numeric_t sum(numeric_seq const &data);
+	numeric_t var(numeric_seq const &data);
+	numeric_t var_pop(numeric_seq const &data);
+	numeric_t stddev(numeric_seq const &data);
+	numeric_t stddev_pop(numeric_seq const &data);
+	numeric_t correlation(numeric_seq const &xdata, numeric_seq const &ydata);
+	linear_regression *find_linear_regression(numeric_seq const &xdata, numeric_seq const &ydata);
 
 }

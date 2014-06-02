@@ -6,35 +6,44 @@
 
 namespace landsat {
 
-	bool check_horizontal_fit(linear_regression &reg, numeric_array const &xdata, numeric_array const &ydata);
-	numeric_t residual_sum_squares(linear_eq const &model, numeric_array const &xdata, numeric_array const &ydata);
-	numeric_t total_sum_squares(numeric_array const &data);
+	bool check_horizontal_fit(linear_regression &reg, numeric_seq const &xdata, numeric_seq const &ydata);
+	numeric_t residual_sum_squares(linear_eq const &model, numeric_seq const &xdata, numeric_seq const &ydata);
+	numeric_t total_sum_squares(numeric_seq const &data);
 
-	numeric_t min(numeric_array const &data)
+	numeric_t min(numeric_seq const &data)
 	{
-		numeric_t mn = data[0];
-		for (size_t i = 0; i < data.size(); i++) {
-			if (mn > data[i]) {
-				mn = data[i];
+		data.reset();
+		numeric_t mn = data.next();
+		while (data.has_next()) {
+			numeric_t n = data.next();
+			if (mn > n) {
+				mn = n;
 			}
 		}
 		return mn;
 	}
 
-	numeric_t max(numeric_array const &data)
+	numeric_t max(numeric_seq const &data)
 	{
-		numeric_t mx = data[0];
-		for (size_t i = 0; i < data.size(); i++) {
-			if (mx < data[i]) {
-				mx = data[i];
+		data.reset();
+		numeric_t mx = data.next();
+		while (data.has_next()) {
+			numeric_t n = data.next();
+			if (mx < n) {
+				mx = n;
 			}
 		}
 		return mx;
 	}
 
-	numeric_t median(numeric_array const &data)
+	numeric_t median(numeric_seq const &data)
 	{
-		numeric_array *sorted = sort_const(data);
+		data.reset();
+		numeric_array copy(data.size());
+		for (size_t i = 0; i < data.size(); i++) {
+			copy[i] = data[i];
+		}
+		numeric_array *sorted = sort_const(copy);
 		numeric_t med = (*sorted)[sorted->size() / 2];
 		if (sorted->size() % 2 == 0) {
 			numeric_t med2 = sorted->data()[(sorted->size() / 2) - 1];
@@ -44,14 +53,16 @@ namespace landsat {
 		return med;
 	}
 
-	numeric_t mode(numeric_array const &data)
+	numeric_t mode(numeric_seq const &data)
 	{
+		data.reset();
 		std::map<numeric_t, int> counts;
-		for (size_t i = 0; i < data.size(); i++) {
-			if (counts.count(data[i]) == 0) {
-				counts[data[i]] = 0;
+		while (data.has_next()) {
+			numeric_t n = data.next();
+			if (counts.count(n) == 0) {
+				counts[n] = 0;
 			}
-			counts[data[i]]++;
+			counts[n]++;
 		}
 		int mode_count = 0;
 		numeric_t mode;
@@ -67,16 +78,18 @@ namespace landsat {
 		return mode;
 	}
 
-	numeric_t mean(numeric_array const &data)
+	numeric_t mean(numeric_seq const &data)
 	{
+		data.reset();
 		numeric_t avg = 0;
-		for (size_t i = 0; i < data.size(); i++) {
-			avg += data[i] / data.size();
+		while (data.has_next()) {
+			numeric_t n = data.next();
+			avg += n / data.size();
 		}
 		return avg;
 	}
 
-	numeric_t range(numeric_array const &data)
+	numeric_t range(numeric_seq const &data)
 	{
 		numeric_t mn = min(data);
 		numeric_t mx = max(data);
@@ -84,48 +97,51 @@ namespace landsat {
 		return rng;
 	}
 
-	numeric_t sum(numeric_array const &data)
+	numeric_t sum(numeric_seq const &data)
 	{
+		data.reset();
 		numeric_t sm = 0;
-		for (size_t i = 0; i < data.size(); i++) {
-			sm += data[i];
+		while (data.has_next()) {
+			sm += data.next();
 		}
 		return sm;
 	}
 
-	numeric_t var(numeric_array const &data)
+	numeric_t var(numeric_seq const &data)
 	{
 		numeric_t avg = mean(data);
 		numeric_t varsum = 0;
-		for (size_t i = 0; i < data.size(); i++) {
-			varsum += pow(data[i] - avg, 2);
+		data.reset();
+		while (data.has_next()) {
+			varsum += pow(data.next() - avg, 2);
 		}
 		numeric_t v = varsum / (data.size() - 1);
 		return v;
 	}
 
-	numeric_t var_pop(numeric_array const &data)
+	numeric_t var_pop(numeric_seq const &data)
 	{
 		numeric_t avg = mean(data);
 		numeric_t varsum = 0;
-		for (size_t i = 0; i < data.size(); i++) {
-			varsum += pow(data[i] - avg, 2);
+		data.reset();
+		while (data.has_next()) {
+			varsum += pow(data.next() - avg, 2);
 		}
 		numeric_t v = varsum / data.size();
 		return v;
 	}
 
-	numeric_t stddev(numeric_array const &data)
+	numeric_t stddev(numeric_seq const &data)
 	{
 		return sqrt(var(data));
 	}
 
-	numeric_t stddev_pop(numeric_array const &data)
+	numeric_t stddev_pop(numeric_seq const &data)
 	{
 		return sqrt(var_pop(data));
 	}
 
-	numeric_t correlation(numeric_array const &xdata, numeric_array const &ydata)
+	numeric_t correlation(numeric_seq const &xdata, numeric_seq const &ydata)
 	{
 		numeric_t x_sum, y_sum, xx_sum, yy_sum, xy_sum;
 		x_sum = y_sum = xx_sum = yy_sum = xy_sum = 0;
@@ -147,7 +163,7 @@ namespace landsat {
 		return r;
 	}
 
-	linear_regression *find_linear_regression(numeric_array const &xdata, numeric_array const &ydata)
+	linear_regression *find_linear_regression(numeric_seq const &xdata, numeric_seq const &ydata)
 	{
 		// uses ordinary least squares
 			
@@ -168,7 +184,7 @@ namespace landsat {
 		return regression;
 	}
 
-	bool check_horizontal_fit(linear_regression &reg, numeric_array const &xdata, numeric_array const &ydata)
+	bool check_horizontal_fit(linear_regression &reg, numeric_seq const &xdata, numeric_seq const &ydata)
 	{
 		bool is_horz = true;
 		numeric_t initial = ydata[0];
@@ -202,7 +218,7 @@ namespace landsat {
 		return is_horz;
 	}
 
-	numeric_t residual_sum_squares(linear_eq const &model, numeric_array const &xdata, numeric_array const &ydata)
+	numeric_t residual_sum_squares(linear_eq const &model, numeric_seq const &xdata, numeric_seq const &ydata)
 	{
 		numeric_t sm = 0;
 		size_t highsize = (xdata.size() > ydata.size()) ? xdata.size() : ydata.size();
@@ -216,7 +232,7 @@ namespace landsat {
 		return sm;
 	}
 
-	numeric_t total_sum_squares(numeric_array const &data)
+	numeric_t total_sum_squares(numeric_seq const &data)
 	{
 		numeric_t avg = mean(data);
 		numeric_t sm = 0;
