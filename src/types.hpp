@@ -5,16 +5,17 @@
 
 namespace landsat
 {
-	
-	struct rect
+	template <typename T>
+	class rect
 	{
-		int x;
-		int y;
-		int width;
-		int height;
+		public:
+			T x;
+			T y;
+			T width;
+			T height;
 	};
 
-	template<typename T>
+	template <typename T>
 	class array
 	{
 		private:
@@ -120,7 +121,7 @@ namespace landsat
 				}
 			}
 
-			grid(grid<T> *old_grid, rect const &sub) : data_store(old_grid->data_store + sub.y), data_width(sub.width), data_height(sub.height), shares_row_stores(true), shares_data_store(true)
+			grid(grid<T> *old_grid, rect<size_t> const &sub) : data_store(old_grid->data_store + sub.y), data_width(sub.width), data_height(sub.height), shares_row_stores(true), shares_data_store(true)
 			{
 				if (sub.x != 0) {
 					data_store = new T*[sub.height];

@@ -6,11 +6,6 @@
 
 #include <iostream>
 
-#define IF_LOUDNESS_CHECK(x, y) do { if(landsat::loudness_level >= x) {y;} } while(0)
-#define IF_QUIET(x) IF_LOUDNESS_CHECK(LOUDNESS_QUIET, x)
-#define IF_NORMAL(x) IF_LOUDNESS_CHECK(LOUDNESS_NORMAL, x) 
-#define IF_VERBOSE(x) IF_LOUDNESS_CHECK(LOUDNESS_VERBOSE, x)
-
 int main(int argc, char **argv);
 
 namespace landsat
@@ -27,11 +22,22 @@ namespace landsat
 	void print_help(const char *progname);
 	void print_version();
 	void print_grid(grid<pixel_t> const &g);
-	void print_rect(rect const &r);
+	void print_rect(rect<size_t> const &r);
 	const char *usage(const char *progname);
-	void translate_window(rect &window, grid<pixel_t> const &data);
+	rect<size_t> *interpret_window(rect<int> const &cli_window, grid<pixel_t> const &data);
+	
+	// Returns zero if successful.
+	//
+	// If the set value ended up having to get defaulted,
+	// returns less than zero if set to the minimum size and
+	// returns greater than zero if set to the maximum size.
+	//
+	// Makes no assumtions about cli_coord's size.
+	int interpret_window_dimension(size_t &set, int cli_length, int cli_coord, size_t data_length);
+	void interpret_window_coordinate(size_t &set, int cli);
+	void print_offset_warning(const char *dimension, const char *comp_op, const char *comp);
 	bool is_good_data(grid<pixel_t> const &red, grid<pixel_t> const &nir);
-	void process_images(const char *red, const char *near_infrared, rect &window);
+	void process_images(const char *red, const char *near_infrared, rect<int> &cli_window);
 	void output_results(const array<regression_stats> &results);
 	regression_stats *get_window_regression_stats(const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size);
 	linear_regression *get_regression(const grid<pixel_t> &red, const grid<pixel_t> &nir);

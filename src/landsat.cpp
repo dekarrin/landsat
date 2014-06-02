@@ -9,6 +9,17 @@
 #include <string>
 #include <sstream>
 
+
+#define IS_LOUDNESS(x) landsat::loudness_level >= x
+#define IS_QUIET IS_LOUDNESS(LOUDNESS_QUIET)
+#define IS_NORMAL IS_LOUDNESS(LOUDNESS_NORMAL)
+#define IS_VERBOSE IS_LOUDNESS(LOUDNESS_VERBOSE)
+
+#define IF_LOUDNESS(x, y) do { if(landsat::loudness_level >= x) {y;} } while(0)
+#define IF_QUIET(x) IF_LOUDNESS(LOUDNESS_QUIET, x)
+#define IF_NORMAL(x) IF_LOUDNESS(LOUDNESS_NORMAL, x) 
+#define IF_VERBOSE(x) IF_LOUDNESS(LOUDNESS_VERBOSE, x)
+
 int main(int argc, char **argv)
 {
 	landsat::cli_arguments *args = new landsat::cli_arguments;
@@ -95,20 +106,21 @@ namespace landsat
 		}
 	}
 
-	void print_rect(rect const &r)
+	void print_rect(rect<size_t> const &r)
 	{
 		std::cout << "{ x=" << r.x << ", y=" << r.y << ", width=" << r.width << ", height=" << r.height << " }" << std::endl;
 	}
 	
-	void process_images(const char *red, const char *near_infrared, rect &window)
+	void process_images(const char *red, const char *near_infrared, rect<int> &cli_window)
 	{
 		IF_VERBOSE(std::cout << "loading red image..." << std::endl);
 		grid<pixel_t> *red_data = get_data(red);
 		IF_VERBOSE(std::cout << "loading near-infrared image..." << std::endl);
 		grid<pixel_t> *nir_data = get_data(near_infrared);
-		translate_window(window, *red_data);
-		grid<pixel_t> *sub_red = new grid<pixel_t>(red_data, window);
-		grid<pixel_t> *sub_nir = new grid<pixel_t>(nir_data, window);
+		rect<size_t> *data_window = interpret_window(cli_window, *red_data);
+		grid<pixel_t> *sub_red = new grid<pixel_t>(red_data, *data_window);
+		grid<pixel_t> *sub_nir = new grid<pixel_t>(nir_data, *data_window);
+		delete data_window;
 		array<regression_stats> *stats = get_all_window_regression_stats(*sub_red, *sub_nir);
 		output_results(*stats);
 		delete sub_red;
@@ -118,32 +130,83 @@ namespace landsat
 		delete stats;
 	}
 
-	void translate_window(rect &window, grid<pixel_t> const &data)
+	int interpret_window_dimension(size_t &set, int cli_length, int cli_coord, size_t data_length)
 	{
-		if (window.width == 0) {
-			window.width = data.width();
-		} else if (window.width < 0) {
-			window.width = data.width() + window.width;
+		int working_set;
+		int error = 0;
+		if (cli_length == 0) {
+			working_set = data_length;
+		} else if (cli_length < 0) {
+			// without cast, cli_length would be 'promoted' to size_t
+			working_set = static_cast<signed int>(data_length) + cli_length;
+		} else {
+			working_set = cli_length;
 		}
-		if (window.height == 0) {
-			window.height = data.height();
-		} else if (window.height < 0) {
-			window.height = data.height() + window.height;
+		if (cli_coord < 0) {
+			// underflow check
+			if (working_set >= 0 || working_set + cli_coord < 0) {
+				working_set += cli_coord;
+			} else {
+				working_set = 0; // this is okay because we're about to check for low vals
+			}
 		}
-		if (window.x < 0) {
-			window.width += window.x;
-			window.x = 0;
+		size_t actual_coord;
+		interpret_window_coordinate(actual_coord, cli_coord);
+		if (working_set < 1) {
+			error = -1;
+			set = 1;
+		} else {
+			size_t maxval = static_cast<size_t>(-1);
+			unsigned int imaxval = static_cast<signed int>(maxval);
+			if (sizeof(size_t) >= sizeof(unsigned int) || working_set <= imaxval) {
+				set = working_set;
+			} else {
+				set = maxval;
+			}
+			size_t bound = set + actual_coord;
+			bound = (bound > 0) ? bound : maxval;
+			if (bound > data_length) {
+				error = 1;
+				set = data_length - actual_coord;
+			}
 		}
-		if (window.y < 0) {
-			window.height += window.y;
-			window.y = 0;
+		return error;
+	}
+
+	void interpret_window_coordinate(size_t &set, int cli)
+	{
+		set = (cli < 0) ? 0 : cli;
+	}
+
+	void print_offset_warning(const char *dimension, const char *comp_op, const char *comp)
+	{
+		std::cerr << "Warning: given offsets result in analysis window " << dimension << " ";
+		std::cerr << comp_op << " than " << comp << ".\n";
+		std::cerr << "Using " << comp << " for analysis window " << dimension << " instead.\n";
+		std::cerr << std::endl;
+	}
+
+	rect<size_t> *interpret_window(rect<int> const &window, grid<pixel_t> const &data)
+	{
+		rect<size_t> *interpreted = new rect<size_t>;
+		// data.width() / .height() are bound by the size needed to hold pixel_t
+		// As long as pixel_t is def'd to something smaller than int,
+		// we can assume data dimensions will fit in a signed int.
+		int err_w = interpret_window_dimension(interpreted->width, window.width, window.x, data.width());
+		int err_h = interpret_window_dimension(interpreted->height, window.height, window.y, data.height());
+		interpret_window_coordinate(interpreted->x, window.x);
+		interpret_window_coordinate(interpreted->y, window.y);
+		if (err_w < 0 && IS_NORMAL) {
+			print_offset_warning("width", "less", "1");
+		} else if (err_w > 0 && IS_NORMAL) {
+			print_offset_warning("width", "greater", "image width");
 		}
-		if (window.x + window.width > data.width()) {
-			window.width = data.width() - window.x;
+		if (err_h < 0 && IS_NORMAL) {
+			print_offset_warning("height", "less", "1");
+		} else if (err_h > 0 && IS_NORMAL) {
+			print_offset_warning("height", "greater", "image height");
 		}
-		if (window.y + window.height > data.height()) {
-			window.height = data.height() - window.y;
-		}
+		return interpreted;
 	}
 
 	void output_results(array<regression_stats> const &results)
@@ -166,7 +229,7 @@ namespace landsat
 		numeric_t *ptr = slopes.data();
 		bool *ptr_goodness = slopes_goodness.data();
 		size_t good_count = 0;
-		rect subr = {0, 0, static_cast<int>(size), static_cast<int>(size)};
+		rect<size_t> subr = {0, 0, size, size};
 		for (subr.y = 0; subr.y + size <= red.height() && subr.y + size <= nir.height(); subr.y += size) {
 			for (subr.x = 0; subr.x + size <= red.width() && subr.x + size <= nir.width(); subr.x += size) {
 				grid<pixel_t> const *red_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&red), subr);

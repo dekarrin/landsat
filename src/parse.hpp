@@ -10,7 +10,7 @@ namespace landsat
 		int loudness;
 		char *red_filename;
 		char *nir_filename;
-		rect window;
+		rect<int> window;
 	};
 
 	int parse_args(int argc, char **argv, cli_arguments *args);

@@ -48,7 +48,7 @@ namespace landsat
 		return status;
 	}
 
-	int parse_opts(int argc, char **argv, cli_arguments *args, int *next_arg)
+	static int parse_opts(int argc, char **argv, cli_arguments *args, int *next_arg)
 	{
 		static option long_opts[] = {
 			{"help",	no_argument,		NULL,		'h'	},
