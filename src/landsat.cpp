@@ -175,12 +175,12 @@ namespace landsat
 					linear_regression *reg = get_regression(*red_sub, *nir_sub);
 					*ptr = reg->eq.slope;
 					*ptr_goodness = true;
+					good_count++;
 					delete reg;
 				} else {
 					IF_VERBOSE(std::cout << "Bad sector: (" << subr.x << ", " << subr.y << ") ");
 					*ptr_goodness = false;
 				}
-				good_count++;
 				ptr++;
 				ptr_goodness++;
 				delete red_sub;
@@ -197,11 +197,10 @@ namespace landsat
 		// first, filter out the bad ones
 		IF_VERBOSE(std::cout << "Found " << good_count << " good sectors out of " << window_count << std::endl);
 		numeric_array good_data(good_count);
-		numeric_t *good_data_ptr = good_data.data();
+		size_t good_data_cur = 0;
 		for (size_t i = 0; i < window_count; i++) {
 			if (slopes_goodness[i]) {
-				*good_data_ptr = slopes[i];
-				good_data_ptr++;
+				good_data[good_data_cur++] = slopes[i];
 			}
 		}
 		stats->mean = mean(good_data);
@@ -220,7 +219,7 @@ namespace landsat
 				if (!diff_x && red.get(x, y) != initial) {
 					diff_x = true;
 				}
-				if (!has_nonzero && red.get(x, y) != 0 || nir.get(x, y) != 0) {
+				if (!has_nonzero && (red.get(x, y) != 0 || nir.get(x, y) != 0)) {
 					has_nonzero = true;
 				}
 				if (diff_x && has_nonzero) {
