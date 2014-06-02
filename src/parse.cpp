@@ -126,6 +126,8 @@ namespace landsat
 		if (parse_long(str, &conv)) {
 			if (conv > INT_MAX) {
 				*parsed = INT_MAX;
+			} else if (conv < INT_MIN) {
+				*parsed = INT_MIN;
 			} else {
 				*parsed = (int)conv;
 			}
