@@ -1,3 +1,4 @@
 AUTOMAKE_OPTIONS=
 ACLOCAL_AMFLAGS=-I m4
 SUBDIRS=src man
+TESTS=tests/small_input.sh
