@@ -10,7 +10,20 @@ namespace landsat {
 	numeric_t residual_sum_squares(linear_eq const &model, numeric_seq const &xdata, numeric_seq const &ydata);
 	numeric_t total_sum_squares(numeric_seq const &data);
 
-	numeric_t min(numeric_seq const &data)
+	stats_t stats_min(sequence<stats_t> const &data)
+	{
+		data.reset();
+		stats_t mn = data.next();
+		while (data.has_next()) {
+			stats_t n = data.next();
+			if (mn > n) {
+				mn = n;
+			}
+		}
+		return mn;
+	}
+
+	numeric_t min(sequence<numeric_t> const &data)
 	{
 		data.reset();
 		numeric_t mn = data.next();
@@ -23,12 +36,25 @@ namespace landsat {
 		return mn;
 	}
 
-	numeric_t max(numeric_seq const &data)
+	stats_t max(seqeunce<stats_t> const &data)
+	{
+		data.reset();
+		stats_t mx = data.next();
+		while (data.has_next()) {
+			stats_t n = data.next();
+			if (mx < n) {
+				mx = n;
+			}
+		}
+		return mx;
+	}
+
+	numeric_t max(seqeunce<numeric_t> const &data)
 	{
 		data.reset();
 		numeric_t mx = data.next();
 		while (data.has_next()) {
-			numeric_t n = data.next();
+			stats_t n = data.next();
 			if (mx < n) {
 				mx = n;
 			}
@@ -53,10 +79,10 @@ namespace landsat {
 		return med;
 	}
 
-	numeric_t mode(numeric_seq const &data)
+	stats_t mode(numeric_seq const &data)
 	{
 		data.reset();
-		std::map<numeric_t, int> counts;
+		std::map<stats_t, int> counts;
 		while (data.has_next()) {
 			numeric_t n = data.next();
 			if (counts.count(n) == 0) {
@@ -65,10 +91,10 @@ namespace landsat {
 			counts[n]++;
 		}
 		int mode_count = 0;
-		numeric_t mode;
-		std::map<numeric_t, int>::const_iterator iter;
+		stats_t mode;
+		std::map<stats_t, int>::const_iterator iter;
 		for (iter = counts.begin(); iter != counts.end(); iter++) {
-			numeric_t element = iter->first;
+			stats_t element = iter->first;
 			int count = iter->second;
 			if (count > mode_count) {
 				mode = element;
@@ -89,11 +115,11 @@ namespace landsat {
 		return avg;
 	}
 
-	numeric_t range(numeric_seq const &data)
+	stats_t range(numeric_seq const &data)
 	{
-		numeric_t mn = min(data);
-		numeric_t mx = max(data);
-		numeric_t rng = mx - mn;
+		stats_t mn = min(data);
+		stats_t mx = max(data);
+		stats_t rng = mx - mn;
 		return rng;
 	}
 
@@ -113,7 +139,7 @@ namespace landsat {
 		numeric_t varsum = 0;
 		data.reset();
 		while (data.has_next()) {
-			varsum += pow(data.next() - avg, 2);
+			varsum += pow(((numeric_t)data.next()) - avg, 2);
 		}
 		numeric_t v = varsum / (data.size() - 1);
 		return v;
@@ -125,7 +151,7 @@ namespace landsat {
 		numeric_t varsum = 0;
 		data.reset();
 		while (data.has_next()) {
-			varsum += pow(data.next() - avg, 2);
+			varsum += pow(((numeric_t)data.next()) - avg, 2);
 		}
 		numeric_t v = varsum / data.size();
 		return v;
@@ -156,7 +182,7 @@ namespace landsat {
 			yy_sum += y * y;
 			xy_sum += x * y;
 		}
-		numeric_t r_top = (((int) highsize) * xy_sum) - (x_sum * y_sum);
+		numeric_t r_top = (((numeric_t) highsize) * xy_sum) - (x_sum * y_sum);
 		numeric_t r_bot_x = sqrt((((int) highsize) * xx_sum) - (x_sum * x_sum));
 		numeric_t r_bot_y = sqrt((((int) highsize) * yy_sum) - (y_sum * y_sum));
 		numeric_t r = r_top / (r_bot_x * r_bot_y);
@@ -187,7 +213,7 @@ namespace landsat {
 	bool check_horizontal_fit(linear_regression &reg, numeric_seq const &xdata, numeric_seq const &ydata)
 	{
 		bool is_horz = true;
-		numeric_t initial = ydata[0];
+		stats_t initial = ydata[0];
 		for (size_t i = 1; i < ydata.size(); i++) {
 			if (ydata[i] != initial) {
 				is_horz = false;
@@ -197,7 +223,7 @@ namespace landsat {
 		if (is_horz) {
 			// if at least two data points are different, we have a horizontal correlation
 			bool x_is_same = true;
-			numeric_t initialx = xdata[0];
+			stats_t initialx = xdata[0];
 			for (size_t i = 1; i < xdata.size(); i++) {
 				if (xdata[i] != initial) {
 					x_is_same = false;
@@ -237,7 +263,7 @@ namespace landsat {
 		numeric_t avg = mean(data);
 		numeric_t sm = 0;
 		for (size_t i = 0; i < data.size(); i++) {
-			numeric_t sq = pow(data[i] - avg, 2);
+			numeric_t sq = pow(((numeric_t)data[i]) - avg, 2);
 			sm += sq;
 		}
 		return sm;
