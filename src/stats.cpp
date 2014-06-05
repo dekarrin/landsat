@@ -23,7 +23,7 @@ namespace landsat {
 		return mn;
 	}
 
-	numeric_t min(sequence<numeric_t> const &data)
+	numeric_t numeric_min(sequence<numeric_t> const &data)
 	{
 		data.reset();
 		numeric_t mn = data.next();
@@ -36,7 +36,7 @@ namespace landsat {
 		return mn;
 	}
 
-	stats_t max(seqeunce<stats_t> const &data)
+	stats_t stats_max(seqeunce<stats_t> const &data)
 	{
 		data.reset();
 		stats_t mx = data.next();
@@ -49,12 +49,12 @@ namespace landsat {
 		return mx;
 	}
 
-	numeric_t max(seqeunce<numeric_t> const &data)
+	numeric_t numeric_max(seqeunce<numeric_t> const &data)
 	{
 		data.reset();
 		numeric_t mx = data.next();
 		while (data.has_next()) {
-			stats_t n = data.next();
+			numeric_t n = data.next();
 			if (mx < n) {
 				mx = n;
 			}
@@ -62,7 +62,7 @@ namespace landsat {
 		return mx;
 	}
 
-	numeric_t median(numeric_seq const &data)
+	numeric_t stats_median(sequence<stats_t> const &data)
 	{
 		data.reset();
 		numeric_array copy(data.size());
@@ -79,12 +79,29 @@ namespace landsat {
 		return med;
 	}
 
-	stats_t mode(numeric_seq const &data)
+	numeric_t numeric_median(sequence<numeric_t> const &data)
+	{
+		data.reset();
+		numeric_array copy(data.size());
+		for (size_t i = 0; i < data.size(); i++) {
+			copy[i] = data[i];
+		}
+		numeric_array *sorted = sort_const(copy);
+		numeric_t med = (*sorted)[sorted->size() / 2];
+		if (sorted->size() % 2 == 0) {
+			numeric_t med2 = sorted->data()[(sorted->size() / 2) - 1];
+			med = ((med + med2) / 2);
+		}
+		delete sorted;
+		return med;
+	
+
+	stats_t stats_mode(sequence<stats_t> const &data)
 	{
 		data.reset();
 		std::map<stats_t, int> counts;
 		while (data.has_next()) {
-			numeric_t n = data.next();
+			stats_t n = data.next();
 			if (counts.count(n) == 0) {
 				counts[n] = 0;
 			}
@@ -104,18 +121,54 @@ namespace landsat {
 		return mode;
 	}
 
-	numeric_t mean(numeric_seq const &data)
+	numeric_t numeric_mode(sequence<numeric_t> const &data)
+	{
+		data.reset();
+		std::map<numeric_t, int> counts;
+		while (data.has_next()) {
+			numeric_t n = data.next();
+			if (counts.count(n) == 0) {
+				counts[n] = 0;
+			}
+			counts[n]++;
+		}
+		int mode_count = 0;
+		numeric_t mode;
+		std::map<numeric_t, int>::const_iterator iter;
+		for (iter = counts.begin(); iter != counts.end(); iter++) {
+			numeric_t element = iter->first;
+			int count = iter->second;
+			if (count > mode_count) {
+				mode = element;
+				mode_count = count;
+			}
+		}
+		return mode;
+	}
+
+	numeric_t stats_mean(sequence<stats_t> const &data)
+	{
+		data.reset();
+		numeric_t avg = 0;
+		while (data.has_next()) {
+			stats_t n = data.next();
+			avg += n / static_cast<numeric_t>(data.size());
+		}
+		return avg;
+	}
+
+	numeric_t numeric_mean(sequence<numeric_t> const &data)
 	{
 		data.reset();
 		numeric_t avg = 0;
 		while (data.has_next()) {
 			numeric_t n = data.next();
-			avg += n / data.size();
+			avg += n / static_cast<numeric_t>(data.size());
 		}
 		return avg;
 	}
 
-	stats_t range(numeric_seq const &data)
+	stats_t stats_range(sequence<stats_t> const &data)
 	{
 		stats_t mn = min(data);
 		stats_t mx = max(data);
@@ -123,7 +176,15 @@ namespace landsat {
 		return rng;
 	}
 
-	numeric_t sum(numeric_seq const &data)
+	numeric_t numeric_range(sequence<numeric_t> const &data)
+	{
+		numeric_t mn = min(data);
+		numeric_t mx = max(data);
+		numeric_t rng = mx - mn;
+		return rng;
+	}
+
+	numeric_t stats_sum(sequence<stats_t> const &data)
 	{
 		data.reset();
 		numeric_t sm = 0;
@@ -133,41 +194,107 @@ namespace landsat {
 		return sm;
 	}
 
-	numeric_t var(numeric_seq const &data)
+	numeric_t numeric_sum(sequence<numeric_t> const &data)
 	{
-		numeric_t avg = mean(data);
+		data.reset();
+		numeric_t sm = 0;
+		while (data.has_next()) {
+			sm += data.next();
+		}
+		return sm;
+	}
+
+	numeric_t stats_var(sequence<stats_t> const &data)
+	{
+		numeric_t avg = stats_mean(data);
 		numeric_t varsum = 0;
 		data.reset();
 		while (data.has_next()) {
-			varsum += pow(((numeric_t)data.next()) - avg, 2);
+			varsum += pow(data.next() - avg, 2);
 		}
 		numeric_t v = varsum / (data.size() - 1);
 		return v;
 	}
 
-	numeric_t var_pop(numeric_seq const &data)
+	numeric_t numeric_var(sequence<numeric_t> const &data)
 	{
-		numeric_t avg = mean(data);
+		numeric_t avg = numeric_mean(data);
 		numeric_t varsum = 0;
 		data.reset();
 		while (data.has_next()) {
-			varsum += pow(((numeric_t)data.next()) - avg, 2);
+			varsum += pow(data.next() - avg, 2);
+		}
+		numeric_t v = varsum / (data.size() - 1);
+		return v;
+	}
+
+	numeric_t stats_var_pop(sequence<stats_t> const &data)
+	{
+		numeric_t avg = stats_mean(data);
+		numeric_t varsum = 0;
+		data.reset();
+		while (data.has_next()) {
+			varsum += pow(data.next() - avg, 2);
 		}
 		numeric_t v = varsum / data.size();
 		return v;
 	}
 
-	numeric_t stddev(numeric_seq const &data)
+	numeric_t numeric_var_pop(sequence<numeric_t> const &data)
 	{
-		return sqrt(var(data));
+		numeric_t avg = numeric_mean(data);
+		numeric_t varsum = 0;
+		data.reset();
+		while (data.has_next()) {
+			varsum += pow(data.next() - avg, 2);
+		}
+		numeric_t v = varsum / data.size();
+		return v;
 	}
 
-	numeric_t stddev_pop(numeric_seq const &data)
+	numeric_t stats_stddev(sequence<stats_t> const &data)
 	{
-		return sqrt(var_pop(data));
+		return sqrt(stats_var(data));
 	}
 
-	numeric_t correlation(numeric_seq const &xdata, numeric_seq const &ydata)
+	numeric_t numeric_stddev(sequence<numeric_t> const &data)
+	{
+		return sqrt(numeric_var(data));
+	}
+
+	numeric_t stats_stddev_pop(sequence<stats_t> const &data)
+	{
+		return sqrt(stats_var_pop(data));
+	}
+
+	numeric_t numeric_stddev_pop(sequence<numeric_t> const &data)
+	{
+		return sqrt(numeric_var_pop(data));
+	}
+
+	numeric_t stats_correlation(sequence<stats_t> const &xdata, sequence<stats_t> const &ydata)
+	{
+		numeric_t x_sum, y_sum, xx_sum, yy_sum, xy_sum;
+		x_sum = y_sum = xx_sum = yy_sum = xy_sum = 0;
+		size_t highsize = (xdata.size() > ydata.size()) ? xdata.size() : ydata.size();
+		for (size_t i = 0; i < highsize; i++) {
+			numeric_t x, y;
+			x = (xdata.size() < highsize) ? 0 : xdata[i];
+			y = (ydata.size() < highsize) ? 0 : ydata[i];
+			x_sum += x;
+			y_sum += y;
+			xx_sum += x * x;
+			yy_sum += y * y;
+			xy_sum += x * y;
+		}
+		numeric_t r_top = (((numeric_t) highsize) * xy_sum) - (x_sum * y_sum);
+		numeric_t r_bot_x = sqrt((((int) highsize) * xx_sum) - (x_sum * x_sum));
+		numeric_t r_bot_y = sqrt((((int) highsize) * yy_sum) - (y_sum * y_sum));
+		numeric_t r = r_top / (r_bot_x * r_bot_y);
+		return r;
+	}
+
+	numeric_t numeric_correlation(sequence<numeric_t> const &xdata, sequence<numeric_t> const &ydata)
 	{
 		numeric_t x_sum, y_sum, xx_sum, yy_sum, xy_sum;
 		x_sum = y_sum = xx_sum = yy_sum = xy_sum = 0;

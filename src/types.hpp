@@ -297,4 +297,6 @@ namespace landsat
 			}
 	};
 
+	typedef unsigned short pixel_t;
+
 }
