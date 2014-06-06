@@ -196,7 +196,7 @@ namespace landsat {
 			counts[n]++;
 		}
 		int mode_count = 0;
-		stats_t mode;
+		stats_t mode = 0;
 		std::map<stats_t, int>::const_iterator iter;
 		for (iter = counts.begin(); iter != counts.end(); iter++) {
 			stats_t element = iter->first;
@@ -221,7 +221,7 @@ namespace landsat {
 			counts[n]++;
 		}
 		int mode_count = 0;
-		numeric_t mode;
+		numeric_t mode = 0.0;
 		std::map<numeric_t, int>::const_iterator iter;
 		for (iter = counts.begin(); iter != counts.end(); iter++) {
 			numeric_t element = iter->first;

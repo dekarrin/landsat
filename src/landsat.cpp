@@ -67,7 +67,7 @@ namespace landsat
 		std::cout << "Available options:\n";
 		std::cout << "-h | --help                       -   show this "
 				"help\n";
-		std::cout << "-i | --version                    -   show ";
+		std::cout << "-i | --version                    -   show "
 				"version information\n";
 		std::cout << "-q | --quiet, --silent            -   supress "
 				"all output except for data\n";
@@ -134,7 +134,7 @@ namespace landsat
 	{
 		IF_VERBOSE(std::cout << "loading red image..." << std::endl);
 		grid<pixel_t> *red_data = get_data(red);
-		IF_VERBOSE(std::cout << "loading near-infrared image...";
+		IF_VERBOSE(std::cout << "loading near-infrared image...");
 		IF_VERBOSE(std::cout << std::endl);
 		grid<pixel_t> *nir_data = get_data(near_infrared);
 		rect<size_t> *data_window = interpret_window(cli_window,
