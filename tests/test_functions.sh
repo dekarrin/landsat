@@ -3,13 +3,40 @@
 bindir="$srcdir/src/"
 script_file="$(basename "$0" .sh)"
 
-export USING_VALGRIND=
+export FEATURE_TEST=1
 
 # tests program execution
-test_output ()
+test_memory_output ()
 {
+	dir="mem"
 	output_file="tests/${script_file}_output.txt"
-	check_file="tests/check/${script_file}.txt"
+	check_file="tests/check/$dir/${script_file}.txt"
+	if test ! -f "$check_file"
+	then
+		echo "Error: missing test file '$check_file'"
+		return 2
+	fi
+	"$@" > "$output_file" 2>&1
+	status=0
+	used_output_file="tests/valgrind_${script_file}_output.txt"
+	used_check_file="tests/check/$dir/valgrind_${script_file}.txt"
+	clear_valgrind_cruft "$output_file" > "$used_output_file"
+	clear_valgrind_cruft "$check_file" > "$used_check_file"
+	if test "x$(diff "$used_output_file" "$used_check_file")" != x
+	then
+		status=1
+	fi
+	rm "$used_output_file"
+	rm "$used_check_file"
+	rm "$output_file"
+	return $status
+}
+
+test_feature_output ()
+{
+	dir="feature"
+	output_file="tests/${script_file}_output.txt"
+	check_file="tests/check/$dir/${script_file}.txt"
 	if test ! -f "$check_file"
 	then
 		echo "Error: missing test file '$check_file'"
@@ -19,23 +46,11 @@ test_output ()
 	status=0
 	used_output_file="$output_file"
 	used_check_file="$check_file"
-	if test "x$USING_VALGRIND" != x
-	then
-		used_output_file="tests/valgrind_${script_file}_output.txt"
-		used_check_file="tests/check/valgrind_${script_file}.txt"
-		clear_valgrind_cruft "$output_file" > "$used_output_file"
-		clear_valgrind_cruft "$check_file" > "$used_check_file"
-	fi
 	if test "x$(diff "$used_output_file" "$used_check_file")" != x
 	then
 		status=1
 	fi
 	rm "$used_output_file"
-	if test "x$USING_VALGRIND" != x
-	then
-		rm "$used_check_file"
-		rm "$output_file"
-	fi
 	return $status
 }
 

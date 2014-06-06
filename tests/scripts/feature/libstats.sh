@@ -2,4 +2,4 @@
 
 . tests/test_functions.sh
 
-test_output $bindir/test
+test_feature_output $bindir/test
