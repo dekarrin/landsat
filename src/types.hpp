@@ -44,17 +44,22 @@ namespace landsat
 			mutable int iter_dir;
 
 		public:
-			array(size_t size) : data_store(new T[size]), data_size(size), iterator(0), iter_step(1), iter_dir(1)
+			array(size_t size) : data_store(new T[size]),
+			 data_size(size), iterator(0), iter_step(1), iter_dir(1)
 			{}
 
-			array(array const &a2) : data_store(new T[a2.size()]), data_size(a2.size()), iterator(0), iter_step(1), iter_dir(1)
+			array(array const &a2) : data_store(new T[a2.size()]),
+			 data_size(a2.size()), iterator(0), iter_step(1),
+			 iter_dir(1)
 			{
 				for (size_t i = 0; i < a2.size(); i++) {
 					data_store[i] = a2[i];
 				}
 			}
 
-			array(T const *ptr, size_t size) : data_store(new T[size]), data_size(size), iterator(0), iter_step(1), iter_dir(1)
+			array(T const *ptr, size_t size) :
+			 data_store(new T[size]), data_size(size), iterator(0),
+			 iter_step(1), iter_dir(1)
 			{
 				for (size_t i = 0; i < size; i++) {
 					data_store[i] = ptr[i];
@@ -171,20 +176,31 @@ namespace landsat
 			mutable int iter_dir;
 
 		public:
-			grid(size_t width, size_t height) : data_store(new T*[height]), data_width(width), data_height(height), shares_row_stores(false), shares_data_store(false), iterator_x(0), iterator_y(0), iter_step(1), iter_dir(1)
+			grid(size_t width, size_t height) :
+			 data_store(new T*[height]), data_width(width),
+			 data_height(height), shares_row_stores(false),
+			 shares_data_store(false), iterator_x(0), iterator_y(0),
+			 iter_step(1), iter_dir(1)
 			{
 				for (size_t i = 0; i < height; i++) {
 					data_store[i] = new T[width];
 				}
 			}
 
-			grid(grid<T> *old_grid, rect<size_t> const &sub) : data_store(old_grid->data_store + sub.y), data_width(sub.width), data_height(sub.height), shares_row_stores(true), shares_data_store(true), iterator_x(0), iterator_y(0), iter_step(1), iter_dir(1)
+			grid(grid<T> *old_grid, rect<size_t> const &sub) :
+			 data_store(old_grid->data_store + sub.y),
+			 data_width(sub.width), data_height(sub.height),
+			 shares_row_stores(true), shares_data_store(true),
+			 iterator_x(0), iterator_y(0), iter_step(1), iter_dir(1)
 			{
 				if (sub.x != 0) {
 					data_store = new T*[sub.height];
 					shares_data_store = false;
-					for (size_t i = 0; i < data_height; i++) {
-						data_store[i] = (*(old_grid->data_store + sub.y + i)) + sub.x;
+					for (size_t i = 0; i < data_height; i++)
+					 {
+						data_store[i] =
+						 (*(old_grid->data_store +
+						 sub.y + i)) + sub.x;
 					}
 				}
 			}
@@ -193,7 +209,8 @@ namespace landsat
 			{
 				if (!shares_data_store) {
 					if (!shares_row_stores) {
-						for (size_t i = 0; i < data_height; i++) {
+						for (size_t i = 0;
+						 i < data_height; i++) {
 							delete[] data_store[i];
 						}
 					}
@@ -271,7 +288,8 @@ namespace landsat
 			virtual bool has_next() const
 			{
 				if (iter_dir < 0) {
-					return ((iterator_y * data_width) + iterator_x) >= iter_step;
+					return ((iterator_y * data_width) +
+					 iterator_x) >= iter_step;
 				} else {
 					return iterator_y < data_height;
 				}

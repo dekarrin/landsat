@@ -18,7 +18,9 @@ namespace landsat
 	bool parse_int_u(const char *str, unsigned int *parsed);
 	bool parse_long(const char *str, long int *parsed);
 	bool parse_long_u(const char *str, unsigned long int *parsed);
-	bool parse_split(const char *str, int *parsed1, int *parsed2, int delimiter);
-	bool parse_split_u(const char *str, unsigned int *parsed1, unsigned int *parsed2, int delimiter);
+	bool parse_split(const char *str, int *parsed1, int *parsed2,
+	 int delimiter);
+	bool parse_split_u(const char *str, unsigned int *parsed1,
+	 unsigned int *parsed2, int delimiter);
 
 }

@@ -54,24 +54,27 @@ namespace landsat
 		return status;
 	}
 
-	static int parse_opts(int argc, char **argv, cli_arguments *args, int *next_arg)
+	static int parse_opts(int argc, char **argv, cli_arguments *args,
+	 int *next_arg)
 	{
 		static option long_opts[] = {
-			{"help",	no_argument,		NULL,		'h'	},
-			{"version",	no_argument,		NULL,		'i'	},
-			{"quiet",	no_argument,		NULL,		'q'	},
-			{"silent",	no_argument,		NULL,		'q'	},
-			{"verbose",	no_argument,		NULL,		'v'	},
-			{"position",	required_argument,	NULL,		'p'	},
-			{"size",	required_argument,	NULL,		's'	},
-			{"cells",	no_argument,		NULL,		'c'	},
-			{0,		0,			0,		0	}
+		 {"help",     no_argument,       NULL, 'h'},
+		 {"version",  no_argument,       NULL, 'i'},
+		 {"quiet",    no_argument,       NULL, 'q'},
+		 {"silent",   no_argument,       NULL, 'q'},
+		 {"verbose",  no_argument,       NULL, 'v'},
+		 {"position", required_argument, NULL, 'p'},
+		 {"size",     required_argument, NULL, 's'},
+		 {"cells",    no_argument,       NULL, 'c'},
+		 {0,          0,                 0,    0}
 		};
 		int status = 0;
 		while (true)
 		{
-			int c = getopt_long(argc, argv, ":hiqvp:s:c", long_opts, NULL);
-			if (c == -1 || !(args->mode == MODE_NORMAL || args->mode == MODE_CELLS) || status != 0) {
+			int c = getopt_long(argc, argv, ":hiqvp:s:c", long_opts,
+			 NULL);
+			if (c == -1 || !(args->mode == MODE_NORMAL ||
+			 args->mode == MODE_CELLS) || status != 0) {
 				break;
 			}
 			switch (c) {
@@ -96,34 +99,52 @@ namespace landsat
 					break;
 
 				case 'p':
-					if (!parse_split(optarg, &(args->window.x), &(args->window.y), ',')) {
+					if (!parse_split(optarg,
+					 &(args->window.x), &(args->window.y),
+					 ',')) {
 						status = ERR_BAD_POSITION;
-						std::cerr << "Error: '" << optarg << "' is not a valid position" << std::endl;
+						std::cerr << "Error: '"
+						 << optarg
+						 << "' is not a valid position"
+						 << std::endl;
 					}
 					break;
 
 				case 's':
-					if (!parse_split(optarg, &(args->window.width), &(args->window.height), 'x')) {
-						if (!parse_split(optarg, &(args->window.width), &(args->window.height), 'X')) {
+					if (!parse_split(optarg,
+					 &(args->window.width),
+					 &(args->window.height), 'x')) {
+						if (!parse_split(optarg,
+						 &(args->window.width),
+						 &(args->window.height), 'X')) {
 							status = ERR_BAD_SIZE;
-							std::cerr << "Error: '" << optarg << "' is not a valid size" << std::endl;
+							std::cerr << "Error: '"
+							 << optarg
+							 << "' is not a valid "
+							 << "size" << std::endl;
 						}
 					}
 					break;
 
 				case '?':
 					status = ERR_UNKNOWN_OPT;
-					// getopt will have already printed an error message
+					// getopt will have already printed an
+					// error message
 					break;
 
 				case ':':
 					status = ERR_MISSING_OPT_ARG;
-					std::cerr << "Error: -" << ((char) optopt) << " option requires an argument" << std::endl;
+					std::cerr << "Error: -"
+					 << ((char) optopt)
+					 << " option requires an argument"
+					 << std::endl;
 					break;
 
 				default:
 					// should never happen
-					std::cerr << "Warning: getopt returned character code 0x" << std::hex << c << std::dec << std::endl;
+					std::cerr << "Warning: getopt returned "
+					 << "character code 0x" << std::hex
+					 << c << std::dec << std::endl;
 					break;
 			}
 		}
@@ -187,7 +208,8 @@ namespace landsat
 		}
 	}
 
-	bool parse_split(const char *str, int *parsed1, int *parsed2, int delimiter)
+	bool parse_split(const char *str, int *parsed1, int *parsed2,
+	 int delimiter)
 	{
 		bool success = false;
 		char delimiter_str[] = { (char)delimiter, '\0' };
@@ -199,7 +221,8 @@ namespace landsat
 			half_1[loc] = '\0';
 			strcpy(half_2, str + loc + 1);
 			int conv1, conv2;
-			if (parse_int(half_1, &conv1) && parse_int(half_2, &conv2)) {
+			if (parse_int(half_1, &conv1) &&
+			 parse_int(half_2, &conv2)) {
 				*parsed1 = conv1;
 				*parsed2 = conv2;
 				success = true;
@@ -210,7 +233,8 @@ namespace landsat
 		return success;
 	}
 
-	bool parse_split_u(const char *str, unsigned int *parsed1, unsigned int *parsed2, int delimiter)
+	bool parse_split_u(const char *str, unsigned int *parsed1,
+	 unsigned int *parsed2, int delimiter)
 	{
 		bool success = false;
 		char delimiter_str[] = { (char)delimiter, '\0' };
@@ -221,7 +245,8 @@ namespace landsat
 			strncpy(half_1, str, loc);
 			strcpy(half_2, str + loc + 1);
 			unsigned int conv1, conv2;
-			if (parse_int_u(half_1, &conv1) && parse_int_u(half_2, &conv2)) {
+			if (parse_int_u(half_1, &conv1) &&
+			 parse_int_u(half_2, &conv2)) {
 				*parsed1 = conv1;
 				*parsed2 = conv2;
 				success = true;

@@ -33,12 +33,14 @@ namespace landsat
 
 	grid<pixel_t> *read_tiff(const tiff_t *image, tsample_t sample)
 	{
-		grid<pixel_t> *img_data = new grid<pixel_t>(image->width, image->height);
+		grid<pixel_t> *img_data = new grid<pixel_t>(image->width,
+		 image->height);
 		tsize_t size = TIFFScanlineSize(image->handle);
 		tdata_t buffer = _TIFFmalloc(size);
 		for (uint16 i = 0; i < image->height; i++) {
 			TIFFReadScanline(image->handle, buffer, i, sample);
-			_TIFFmemcpy(img_data->row(i), buffer, (image->bitdepth / 8) * image->width);
+			_TIFFmemcpy(img_data->row(i), buffer,
+			 (image->bitdepth / 8) * image->width);
 		}
 		_TIFFfree(buffer);
 		return img_data;

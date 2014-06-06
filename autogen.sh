@@ -2,9 +2,10 @@
 
 # Generates build files
 #
-# Defaults for Autotools may be overrided by setting the environment variable for that program.
-# $LIBTOOLIZE, $ACLOCAL, $AUTOHEADER, $AUTOMAKE, and $AUTOCONF may each be set in the parent
-# environment to use their contents rather than the defaults.
+# Defaults for Autotools may be overrided by setting the environment variable
+# for that program. $LIBTOOLIZE, $ACLOCAL, $AUTOHEADER, $AUTOMAKE, and $AUTOCONF
+# may each be set in the parent environment to use their contents rather than
+# the defaults.
 
 LIBTOOLIZE_NAMES="$LIBTOOLIZE libtoolize glibtoolize"
 ACLOCAL_NAMES="$ACLOCAL aclocal"
@@ -66,9 +67,13 @@ if test "$terminate" = 1
 then
 	if test "x$force" = "x1"
 	then
-		echo "Could not find tr on this system; program versioning cannot be automated."
-		echo "Replace the second argument to AC_INIT in configure.ac with the number in the file VERSION"
-		echo "and execute this script with either -f or --force to retry."
+		echo -n "Could not find tr on this system; program versioning "
+		echo "cannot be automated."
+		echo -n "Replace the second argument to AC_INIT in "
+		echo "configure.ac with the"
+		echo -n "number in the file VERSION and execute this script "
+		echo "with either -f or --force"
+		echo "to retry."
 	else
 		terminate=0
 	fi
@@ -99,7 +104,9 @@ fi
 # Otherwise, we tested the environment and have our programs. Time to generate:
 
 git log --date=short --format=format:"%ad %an%n%n	* %s%n" > ChangeLog
-echo >> ChangeLog # git log uses newline as separator between entries, so the last one will not have one
+# git log uses newline as separator between entries, so the last one will not
+# have a newline
+echo >> ChangeLog
 run_program $LIBTOOLIZE --force --copy
 run_program $ACLOCAL
 run_program $AUTOHEADER

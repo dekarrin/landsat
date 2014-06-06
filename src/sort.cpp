@@ -26,7 +26,8 @@ namespace landsat
 
 	void quicksort(array<numeric_t> &list)
 	{
-		qsort(list.data(), list.size(), list.element_size(), &compare_numerics);
+		qsort(list.data(), list.size(), list.element_size(),
+		 &compare_numerics);
 	}
 
 	void insertion_sort(array<numeric_t> &list)
