@@ -23,11 +23,9 @@ namespace landsat
 		bool *goodness_ptr = goodness.data();
 		numeric_t *red_avg_ptr = red_avg.data();
 		numeric_t *nir_avg_ptr = nir_avg.data();
-		for (sub.x = 0; sub.x + (sub.width - 1) < red.width();
-		 sub.x += size) {
-			for (sub.y = 0;
-			 sub.y + (sub.height - 1) < red.height();
-			 sub.y += size) {
+		for (sub.y = 0; sub.y + size <= red.height(); sub.y += size) {
+			for (sub.x = 0; sub.x + size <= red.width();
+			 sub.x += size) {
 				const grid<pixel_t> sub_red(
 				 const_cast<grid<pixel_t>*>(&red), sub);
 				const grid<pixel_t> sub_nir(
