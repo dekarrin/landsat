@@ -17,8 +17,9 @@
 #define ERR_BAD_SIZE 7
 
 #define MODE_NORMAL 0
-#define MODE_HELP 1
-#define MODE_VERSION 2
+#define MODE_CELLS 1
+#define MODE_HELP 2
+#define MODE_VERSION 3
 
 #define LOUDNESS_QUIET 0
 #define LOUDNESS_NORMAL 1

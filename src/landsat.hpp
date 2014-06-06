@@ -19,6 +19,12 @@ namespace landsat
 		size_t window_size;
 	};
 
+	struct cell_regression_stats
+	{
+		numeric_t slope;
+		size_t cell_size;
+	};
+
 	void print_help(const char *progname);
 	void print_version();
 	void print_grid(grid<pixel_t> const &g);
@@ -37,8 +43,9 @@ namespace landsat
 	void interpret_window_coordinate(size_t &set, int cli);
 	void print_offset_warning(const char *dimension, const char *comp_op, const char *comp);
 	bool is_good_data(grid<pixel_t> const &red, grid<pixel_t> const &nir);
-	void process_images(const char *red, const char *near_infrared, rect<int> &cli_window);
-	void output_results(const array<regression_stats> &results);
+	void process_images(const char *red, const char *near_infrared, rect<int> &cli_window, int mode);
+	void output_window_results(const array<regression_stats> &results);
+	void output_cell_results(const array<cell_regression_stats> &results);
 	regression_stats *get_window_regression_stats(const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size);
 	linear_regression *get_regression(const grid<pixel_t> &red, const grid<pixel_t> &nir);
 	array<regression_stats> *get_all_window_regression_stats(const grid<pixel_t> &red, const grid<pixel_t> &nir);

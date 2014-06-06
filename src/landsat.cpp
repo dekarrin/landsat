@@ -9,7 +9,6 @@
 #include <string>
 #include <sstream>
 
-
 #define IS_LOUDNESS(x) landsat::loudness_level >= x
 #define IS_QUIET IS_LOUDNESS(LOUDNESS_QUIET)
 #define IS_NORMAL IS_LOUDNESS(LOUDNESS_NORMAL)
@@ -20,6 +19,8 @@
 #define IF_NORMAL(x) IF_LOUDNESS(LOUDNESS_NORMAL, x) 
 #define IF_VERBOSE(x) IF_LOUDNESS(LOUDNESS_VERBOSE, x)
 
+#include "cells.cpp"
+
 int main(int argc, char **argv)
 {
 	landsat::cli_arguments *args = new landsat::cli_arguments;
@@ -27,8 +28,9 @@ int main(int argc, char **argv)
 	if (status == 0) {
 		switch (args->mode) {
 			case MODE_NORMAL:
+			case MODE_CELLS:
 				landsat::loudness_level = args->loudness;
-				landsat::process_images(args->red_filename, args->nir_filename, args->window);
+				landsat::process_images(args->red_filename, args->nir_filename, args->window, args->mode);
 				break;
 
 			case MODE_HELP:
@@ -65,6 +67,7 @@ namespace landsat
 		std::cout << "-v | --verbose                    -   display additional information\n";
 		std::cout << "-p [x],[y] | --position=[x],[y]   -   start position of analysis window\n";
 		std::cout << "-s [w]x[h] | --size=[w]x[h]       -   size of analysis window\n";
+		std::cout << "-c | --cells                      -   analyze based on cell average values\n";
 		std::cout << "\n";
 		std::cout << "Report bugs to: " PACKAGE_BUGREPORT "\n";
 		std::cout << PACKAGE_NAME " home page: " PACKAGE_URL "\n";
@@ -111,7 +114,8 @@ namespace landsat
 		std::cout << "{ x=" << r.x << ", y=" << r.y << ", width=" << r.width << ", height=" << r.height << " }" << std::endl;
 	}
 	
-	void process_images(const char *red, const char *near_infrared, rect<int> &cli_window)
+	void process_images(const char *red, const char *near_infrared,
+	 rect<int> &cli_window, int mode)
 	{
 		IF_VERBOSE(std::cout << "loading red image..." << std::endl);
 		grid<pixel_t> *red_data = get_data(red);
@@ -121,13 +125,22 @@ namespace landsat
 		grid<pixel_t> *sub_red = new grid<pixel_t>(red_data, *data_window);
 		grid<pixel_t> *sub_nir = new grid<pixel_t>(nir_data, *data_window);
 		delete data_window;
-		array<regression_stats> *stats = get_all_window_regression_stats(*sub_red, *sub_nir);
-		output_results(*stats);
+		if (mode == MODE_NORMAL) {
+			array<regression_stats> *stats = get_all_window_regression_stats(*sub_red, *sub_nir);
+			output_window_results(*stats);
+			delete stats;
+		} else if (mode == MODE_CELLS) {
+			array<cell_regression_stats> *stats =
+			 get_all_cell_regression_stats(*sub_red, *sub_nir);
+			output_cell_results(*stats);
+			delete stats;
+		} else {
+			// should never happen
+		}
 		delete sub_red;
 		delete sub_nir;
 		delete red_data;
 		delete nir_data;
-		delete stats;
 	}
 
 	int interpret_window_dimension(size_t &set, int cli_length, int cli_coord, size_t data_length)
@@ -210,12 +223,22 @@ namespace landsat
 		return interpreted;
 	}
 
-	void output_results(array<regression_stats> const &results)
+	void output_window_results(array<regression_stats> const &results)
 	{
 		IF_NORMAL(std::cout << "window size, slope mean, slope stddev" << std::endl);
 		for (size_t i = 0; i < results.size(); i++) {
 			regression_stats reg = results[i];
 			IF_QUIET(std::cout << reg.window_size << ' ' << reg.mean << ' ' << reg.stddev << std::endl);
+		}
+	}
+
+	void output_cell_results(array<cell_regression_stats> const &results)
+	{
+		IF_NORMAL(std::cout << "window size, slope" << std::endl);
+		for (size_t i = 0; i < results.size(); i++) {
+			cell_regression_stats reg = results[i];
+			IF_QUIET(std::cout << reg.cell_size << ' ');
+			IF_QUIET(std::cout << reg.slope << std::endl);
 		}
 	}
 
@@ -297,11 +320,15 @@ namespace landsat
 	array<regression_stats> *get_all_window_regression_stats(const grid<pixel_t> &red, const grid<pixel_t> &nir)
 	{
 		size_t window_base = 2;
-		size_t size_count = (size_t) ((log(red.width()) / log(window_base)) - 1);
-		array<regression_stats> *all_stats = new array<regression_stats>(size_count);
+		size_t size_count = (size_t) ((log(red.width()) /
+		 log(window_base)) - 1);
+		array<regression_stats> *all_stats =
+		 new array<regression_stats>(size_count);
 		size_t pos = 0;
 		// we only do powers of two:
-		for (size_t window_size = 2; window_size * 2 < red.height(); window_size *= window_base) {
+		for (size_t window_size = window_base;
+		 window_size * window_base < red.height();
+		 window_size *= window_base) {
 			IF_NORMAL(std::cout << "Checking window size " << window_size << "..." << std::endl);
 			regression_stats *stats = get_window_regression_stats(red, nir, window_size);
 			(*all_stats)[pos++] = *stats;
