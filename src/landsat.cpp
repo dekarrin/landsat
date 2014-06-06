@@ -225,20 +225,33 @@ namespace landsat
 
 	void output_window_results(array<regression_stats> const &results)
 	{
-		IF_NORMAL(std::cout << "window size, slope mean, slope stddev" << std::endl);
+		IF_NORMAL(std::cout << "(y = mx + b)" << std::endl);
+		IF_NORMAL(std::cout << "size, mean m, stdev m, mean b, ");
+		IF_NORMAL(std::cout << "stdev b, mean r2, stdev r2");
+		IF_NORMAL(std::cout << std::endl);
 		for (size_t i = 0; i < results.size(); i++) {
 			regression_stats reg = results[i];
-			IF_QUIET(std::cout << reg.window_size << ' ' << reg.mean << ' ' << reg.stddev << std::endl);
+			IF_QUIET(std::cout << reg.window_size << ' ');
+			IF_QUIET(std::cout << reg.slope_mean << ' ');
+			IF_QUIET(std::cout << reg.slope_stddev << ' ');
+			IF_QUIET(std::cout << reg.intercept_mean << ' ');
+			IF_QUIET(std::cout << reg.intercept_stddev << ' ');
+			IF_QUIET(std::cout << reg.r2_mean << ' ');
+			IF_QUIET(std::cout << reg.r2_stddev << std::endl);
 		}
 	}
 
 	void output_cell_results(array<cell_regression_stats> const &results)
 	{
-		IF_NORMAL(std::cout << "window size, slope" << std::endl);
+		IF_NORMAL(std::cout << "window size, slope, intercept, r2");
+		IF_NORMAL(std::cout << std::endl);
 		for (size_t i = 0; i < results.size(); i++) {
-			cell_regression_stats reg = results[i];
-			IF_QUIET(std::cout << reg.cell_size << ' ');
-			IF_QUIET(std::cout << reg.slope << std::endl);
+			cell_regression_stats stats = results[i];
+			linear_regression reg = stats.regression;
+			IF_QUIET(std::cout << stats.cell_size << ' ');
+			IF_QUIET(std::cout << reg.eq.slope << ' ');
+			IF_QUIET(std::cout << reg.eq.intercept << ' ');
+			IF_QUIET(std::cout << reg.r2 << ' ' << std::endl);
 		}
 	}
 
@@ -249,29 +262,42 @@ namespace landsat
 		IF_NORMAL(std::cout << row_count << " rows" << std::endl);
 		size_t window_count = (red.width() / size) * row_count;
 		array<numeric_t> slopes(window_count);
-		array<bool> slopes_goodness(window_count);
-		numeric_t *ptr = slopes.data();
-		bool *ptr_goodness = slopes_goodness.data();
+		array<numeric_t> intercepts(window_count);
+		array<numeric_t> r2s(window_count);
+		array<bool> goodness(window_count);
+		numeric_t *slopes_ptr = slopes.data();
+		numeric_t *intercepts_ptr = intercepts.data();
+		numeric_t *r2s_ptr = r2s.data();
+		bool *ptr_goodness = goodness.data();
 		size_t good_count = 0;
 		rect<size_t> subr = {0, 0, size, size};
 		for (subr.y = 0; subr.y + size <= red.height() && subr.y + size <= nir.height(); subr.y += size) {
 			for (subr.x = 0; subr.x + size <= red.width() && subr.x + size <= nir.width(); subr.x += size) {
-				grid<pixel_t> const *red_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&red), subr);
-				grid<pixel_t> const *nir_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&nir), subr);
-				if (is_good_data(*red_sub, *nir_sub)) {
-					linear_regression *reg = stats_find_linear_regression(*red_sub, *nir_sub);
-					*ptr = reg->eq.slope;
+				const grid<pixel_t> red_sub(
+				 const_cast<grid<pixel_t>*>(&red), subr);
+				const grid<pixel_t> nir_sub(
+				 const_cast<grid<pixel_t>*>(&nir), subr);
+				if (is_good_data(red_sub, nir_sub)) {
+					linear_regression *reg =
+					 stats_find_linear_regression(red_sub,
+					 nir_sub);
+					*slopes_ptr = reg->eq.slope;
+					*intercepts_ptr = reg->eq.intercept;
+					*r2s_ptr = reg->r2;
 					*ptr_goodness = true;
 					good_count++;
 					delete reg;
 				} else {
-					IF_VERBOSE(std::cout << "Bad sector: (" << subr.x << ", " << subr.y << ") ");
+					IF_VERBOSE(std::cout << "Bad sector: ");
+					IF_VERBOSE(std::cout << "(" << subr.x);
+					IF_VERBOSE(std::cout << ", " << subr.y);
+					IF_VERBOSE(std::cout << ") ");
 					*ptr_goodness = false;
 				}
-				ptr++;
+				slopes_ptr++;
+				intercepts_ptr++;
+				r2s_ptr++;
 				ptr_goodness++;
-				delete red_sub;
-				delete nir_sub;
 			}
 			if ((subr.y / size) % output_block == 0) {
 				IF_NORMAL(std::cout << "\ranalyzing rows starting at " << (subr.y / size) << "...");
@@ -283,15 +309,24 @@ namespace landsat
 		regression_stats *stats = new regression_stats;
 		// first, filter out the bad ones
 		IF_VERBOSE(std::cout << "Found " << good_count << " good sectors out of " << window_count << std::endl);
-		array<numeric_t> good_data(good_count);
+		array<numeric_t> good_slope_data(good_count);
+		array<numeric_t> good_intercept_data(good_count);
+		array<numeric_t> good_r2_data(good_count);
 		size_t good_data_cur = 0;
 		for (size_t i = 0; i < window_count; i++) {
-			if (slopes_goodness[i]) {
-				good_data[good_data_cur++] = slopes[i];
+			if (goodness[i]) {
+				good_slope_data[good_data_cur] = slopes[i];
+				good_intercept_data[good_data_cur] = intercepts[i];
+				good_r2_data[good_data_cur] = r2s[i];
+				good_data_cur++;
 			}
 		}
-		stats->mean = numeric_mean(good_data);
-		stats->stddev = numeric_stddev(good_data);
+		stats->slope_mean = numeric_mean(good_slope_data);
+		stats->slope_stddev = numeric_stddev(good_slope_data);
+		stats->intercept_mean = numeric_mean(good_intercept_data);
+		stats->intercept_stddev = numeric_stddev(good_intercept_data);
+		stats->r2_mean = numeric_mean(good_r2_data);
+		stats->r2_stddev = numeric_stddev(good_r2_data);
 		stats->window_size = size;
 		return stats;
 	}

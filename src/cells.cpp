@@ -74,7 +74,7 @@ namespace landsat
 		 good_red_data, good_nir_data);
 		cell_regression_stats *stats = new cell_regression_stats;
 		stats->cell_size = size;
-		stats->slope = reg->eq.slope;
+		stats->regression = *reg;
 		delete reg;
 		return stats;
 	}

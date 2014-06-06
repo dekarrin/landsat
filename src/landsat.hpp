@@ -14,14 +14,18 @@ namespace landsat
 
 	struct regression_stats
 	{
-		numeric_t mean;
-		numeric_t stddev;
+		numeric_t slope_mean;
+		numeric_t slope_stddev;
+		numeric_t intercept_mean;
+		numeric_t intercept_stddev;
+		numeric_t r2_mean;
+		numeric_t r2_stddev;
 		size_t window_size;
 	};
 
 	struct cell_regression_stats
 	{
-		numeric_t slope;
+		linear_regression regression;
 		size_t cell_size;
 	};
 
