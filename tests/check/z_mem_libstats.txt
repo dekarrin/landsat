@@ -1,0 +1,39 @@
+==29120== Memcheck, a memory error detector
+==29120== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==29120== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==29120== Command: src/test
+==29120== 
+Min: -2342.000
+Max: 934.000
+Range: 3276.000
+Mean: 1.587
+Median: 22.500
+Mode: 34.000
+Sum: 34.924
+Variance: 320214.864 / 305659.643
+Standard deviation: 565.875 / 552.865
+X-Y correlation: -0.009
+Line of best fit: y = -0.00009982x + 10.50015845, R^2 = 0.00007566
+
+X-data:
+[
+    23.00, 45.00, -12.00, 12.40, 94.00, 294.00, 934.00, 394.00, -2342.00, 0.00,
+    -1.00, 34.00, 324.52, 34.00, 12.00, 36.00, 53.00, 18.00, 19.00, 20.00,
+    22.00, 21.00
+]
+
+Y-data:
+[
+    0.00, 1.00, 2.00, 3.00, 4.00, 5.00, 6.00, 7.00, 8.00, 9.00,
+    10.00, 11.00, 12.00, 13.00, 14.00, 15.00, 16.00, 17.00, 18.00, 19.00,
+    20.00, 21.00
+]
+==29120== 
+==29120== HEAP SUMMARY:
+==29120==     in use at exit: 0 bytes in 0 blocks
+==29120==   total heap usage: 27 allocs, 27 frees, 1,340 bytes allocated
+==29120== 
+==29120== All heap blocks were freed -- no leaks are possible
+==29120== 
+==29120== For counts of detected and suppressed errors, rerun with: -v
+==29120== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 31 from 8)

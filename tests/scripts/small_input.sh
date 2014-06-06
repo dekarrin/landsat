@@ -2,7 +2,7 @@
 
 . tests/test_functions.sh
 
-test_output small_input landsat tests/red.tif tests/nir.tif -q
+test_output $bindir/landsat tests/red.tif tests/nir.tif -q
 
 # tests program execution
 #

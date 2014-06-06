@@ -2,4 +2,4 @@
 
 . tests/test_functions.sh
 
-test_output "libstats" test
+test_output $bindir/test
