@@ -11,7 +11,8 @@
 namespace landsat
 {
 
-	static int parse_opts(int argc, char **argv, cli_arguments *args, int *next_arg);
+	static int parse_opts(int argc, char **argv, cli_arguments *args,
+	 int *next_arg);
 
 	int parse_args(int argc, char **argv, cli_arguments *args)
 	{
@@ -24,7 +25,8 @@ namespace landsat
 		args->window.height = 0;
 		int nextind;
 		status = parse_opts(argc, argv, args, &nextind);
-		if (status == 0 && args->mode == MODE_NORMAL) {
+		if (status == 0 &&
+		 (args->mode != MODE_HELP && args->mode != MODE_VERSION)) {
 			if (argc - nextind < 2) {
 				status = ERR_MISSING_ARG;
 			} else {
@@ -37,10 +39,14 @@ namespace landsat
 				red_file.close();
 				nir_file.close();
 				if (!red_exists) {
-					std::cerr << "Error: could not open '" << args->red_filename << "'" << std::endl;
+					std::cerr << "Error: could not open '";
+					std::cerr << args->red_filename << "'";
+					std::cerr << std::endl;
 					status = ERR_BAD_RED_FILE;
 				} else if (!nir_exists) {
-					std::cerr << "Error: could not open '" << args->nir_filename << "'" << std::endl;
+					std::cerr << "Error: could not open '";
+					std::cerr << args->nir_filename << "'";
+					std::cerr << std::endl;
 					status = ERR_BAD_NIR_FILE;
 				}
 			}
@@ -65,7 +71,7 @@ namespace landsat
 		while (true)
 		{
 			int c = getopt_long(argc, argv, ":hiqvp:s:c", long_opts, NULL);
-			if (c == -1 || (args->mode != MODE_NORMAL && args->mode != MODE_CELLS) || status != 0) {
+			if (c == -1 || !(args->mode == MODE_NORMAL || args->mode == MODE_CELLS) || status != 0) {
 				break;
 			}
 			switch (c) {
