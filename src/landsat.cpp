@@ -186,7 +186,8 @@ namespace landsat
 		std::cerr << std::endl;
 	}
 
-	rect<size_t> *interpret_window(rect<int> const &window, grid<pixel_t> const &data)
+	rect<size_t> *interpret_window(rect<int> const &window,
+	 grid<pixel_t> const &data)
 	{
 		rect<size_t> *interpreted = new rect<size_t>;
 		// data.width() / .height() are bound by the size needed to hold pixel_t
@@ -224,7 +225,7 @@ namespace landsat
 		size_t row_count = (red.height() / size);
 		IF_NORMAL(std::cout << row_count << " rows" << std::endl);
 		size_t window_count = (red.width() / size) * row_count;
-		numeric_array slopes(window_count);
+		array<numeric_t> slopes(window_count);
 		array<bool> slopes_goodness(window_count);
 		numeric_t *ptr = slopes.data();
 		bool *ptr_goodness = slopes_goodness.data();
@@ -235,7 +236,7 @@ namespace landsat
 				grid<pixel_t> const *red_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&red), subr);
 				grid<pixel_t> const *nir_sub = new grid<pixel_t>(const_cast<grid<pixel_t>*>(&nir), subr);
 				if (is_good_data(*red_sub, *nir_sub)) {
-					linear_regression *reg = find_linear_regression(*red_sub, *nir_sub);
+					linear_regression *reg = stats_find_linear_regression(*red_sub, *nir_sub);
 					*ptr = reg->eq.slope;
 					*ptr_goodness = true;
 					good_count++;
@@ -259,15 +260,15 @@ namespace landsat
 		regression_stats *stats = new regression_stats;
 		// first, filter out the bad ones
 		IF_VERBOSE(std::cout << "Found " << good_count << " good sectors out of " << window_count << std::endl);
-		numeric_array good_data(good_count);
+		array<numeric_t> good_data(good_count);
 		size_t good_data_cur = 0;
 		for (size_t i = 0; i < window_count; i++) {
 			if (slopes_goodness[i]) {
 				good_data[good_data_cur++] = slopes[i];
 			}
 		}
-		stats->mean = mean(good_data);
-		stats->stddev = stddev(good_data);
+		stats->mean = numeric_mean(good_data);
+		stats->stddev = numeric_stddev(good_data);
 		stats->window_size = size;
 		return stats;
 	}

@@ -12,8 +12,8 @@ namespace landsat
 		rect<size_t> sub = {0, 0, cell_size, cell_size};
 		size_t xCount = data.width() / cell_size;
 		size_t yCount = data.height() / cell_size;
-		numeric_array red_avg(xCount * yCount);
-		numeric_array nir_avg(xCount * yCount);
+		array<numeric_t> red_avg(xCount * yCount);
+		array<numeric_t> nir_avg(xCount * yCount);
 		numeric_t *red_avg_ptr = red_avg.data();
 		numeric_t *nir_avg_ptr = nir_avg.data();
 		for (sub.x = 0; sub.x + (sub.width - 1) < data.width(); sub.x += cell_size) {

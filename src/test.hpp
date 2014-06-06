@@ -4,4 +4,4 @@
 #include "stats.hpp"
 
 int main(int argc, char **argv);
-void print_arr(landsat::numeric_array &data);
+void print_arr(landsat::array<landsat::numeric_t> &data);

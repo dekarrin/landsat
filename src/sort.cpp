@@ -8,14 +8,14 @@ namespace landsat
 	
 	static int compare_numerics(void const *x1, void const *x2);
 
-	numeric_array *sort_const(numeric_array const &list)
+	array<numeric_t> *sort_const(array<numeric_t> const &list)
 	{
-		numeric_array *sorted = new numeric_array(list);
+		array<numeric_t> *sorted = new array<numeric_t>(list);
 		sort(*sorted);
 		return sorted;
 	}
 
-	void sort(numeric_array &list)
+	void sort(array<numeric_t> &list)
 	{
 		if (list.size() >= QS_MIN_SIZE) {
 			quicksort(list);
@@ -24,12 +24,12 @@ namespace landsat
 		}
 	}
 
-	void quicksort(numeric_array &list)
+	void quicksort(array<numeric_t> &list)
 	{
 		qsort(list.data(), list.size(), list.element_size(), &compare_numerics);
 	}
 
-	void insertion_sort(numeric_array &list)
+	void insertion_sort(array<numeric_t> &list)
 	{
 		size_t i, j;
 		for (i = 1; i < list.size(); i++) {

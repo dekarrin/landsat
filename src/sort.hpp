@@ -6,8 +6,8 @@
 
 namespace landsat
 {
-	numeric_array *sort_const(numeric_array const &list);
-	void sort(numeric_array &list);
-	void quicksort(numeric_array &list);
-	void insertion_sort(numeric_array &list);
+	array<numeric_t> *sort_const(array<numeric_t> const &list);
+	void sort(array<numeric_t> &list);
+	void quicksort(array<numeric_t> &list);
+	void insertion_sort(array<numeric_t> &list);
 }

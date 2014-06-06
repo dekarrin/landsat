@@ -7,10 +7,6 @@ namespace landsat
 {
 	typedef double numeric_t;
 	typedef pixel_t stats_t;
-	typedef sequence<stats_t> stats_seq;
-	typedef sequence<numeric_t> numeric_seq;
-	typedef array<stats_t> stats_array;
-	typedef array<numeric_t> numeric_array;
 
 	struct linear_eq
 	{
@@ -24,18 +20,45 @@ namespace landsat
 		numeric_t r2;
 	};
 
-	stats_t min(numeric_seq const &data);
-	stats_t max(numeric_seq const &data);
-	numeric_t median(numeric_seq const &data);
-	stats_t mode(numeric_seq const &data);
-	numeric_t mean(numeric_seq const &data);
-	stats_t range(numeric_seq const &data);
-	numeric_t sum(numeric_seq const &data);
-	numeric_t var(numeric_seq const &data);
-	numeric_t var_pop(numeric_seq const &data);
-	numeric_t stddev(numeric_seq const &data);
-	numeric_t stddev_pop(numeric_seq const &data);
-	numeric_t correlation(numeric_seq const &xdata, numeric_seq const &ydata);
-	linear_regression *find_linear_regression(numeric_seq const &xdata, numeric_seq const &ydata);
+	stats_t stats_min(sequence<stats_t> const &data);
+	numeric_t numeric_min(sequence<numeric_t> const &data);
+	stats_t stats_max(sequence<stats_t> const &data);
+	numeric_t numeric_max(sequence<numeric_t> const &data);
+	numeric_t stats_median(sequence<stats_t> const &data);
+	numeric_t numeric_median(sequence<numeric_t> const &data);
+	stats_t stats_mode(sequence<stats_t> const &data);
+	numeric_t numeric_mode(sequence<numeric_t> const &data);
+	numeric_t stats_mean(sequence<stats_t> const &data);
+	numeric_t numeric_mean(sequence<numeric_t> const &data);
+	stats_t stats_range(sequence<stats_t> const &data);
+	numeric_t numeric_range(sequence<numeric_t> const &data);
+	numeric_t stats_sum(sequence<stats_t> const &data);
+	numeric_t numeric_sum(sequence<numeric_t> const &data);
+	numeric_t stats_var(sequence<stats_t> const &data);
+	numeric_t numeric_var(sequence<numeric_t> const &data);
+	numeric_t stats_var_pop(sequence<stats_t> const &data);
+	numeric_t numeric_var_pop(sequence<numeric_t> const &data);
+	numeric_t stats_stddev(sequence<stats_t> const &data);
+	numeric_t numeric_stddev(sequence<numeric_t> const &data);
+	numeric_t stats_stddev_pop(sequence<stats_t> const &data);
+	numeric_t numeric_stddev_pop(sequence<numeric_t> const &data);
+	numeric_t stats_correlation(sequence<stats_t> const &xdata,
+	 sequence<stats_t> const &ydata);
+	numeric_t numeric_correlation(sequence<numeric_t> const &xdata,
+	 sequence<numeric_t> const &ydata);
+	numeric_t stats_numeric_correlation(sequence<stats_t> const &xdata,
+	 sequence<numeric_t> const &ydata);
+	numeric_t numeric_stats_correlation(sequence<numeric_t> const &xdata,
+	 sequence<stats_t> const &ydata);
+	numeric_t stats_numeric_correlation(sequence<stats_t> const &xdata,
+	 sequence<numeric_t> const &ydata);
+	linear_regression *stats_find_linear_regression(
+	 sequence<stats_t> const &xdata, sequence<stats_t> const &ydata);
+	linear_regression *numeric_find_linear_regression(
+	 sequence<numeric_t> const &xdata, sequence<numeric_t> const &ydata);
+	linear_regression *stats_numeric_find_linear_regression(
+	 sequence<stats_t> const &xdata, sequence<numeric_t> const &ydata);
+	linear_regression *numeric_stats_find_linear_regression(
+	 sequence<numeric_t> const &xdata, sequence<stats_t> const &ydata);
 
 }
