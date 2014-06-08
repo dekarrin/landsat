@@ -1,1 +1,1 @@
-bin_SCRIPTS=plot.sh
+dist_bin_SCRIPTS=*.sh
