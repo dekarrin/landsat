@@ -20,9 +20,9 @@ usage_statement="Usage: plot_all.sh [landsat_bin] [red_tif] [near-infrared_tif] 
 if [ "$#" -lt 1 ]
 then
 	echo "Error: missing landsat binary location" >&2
-	echo "$usage_statemtnt"
+	echo "$usage_statement"
 	exit 1
-if [ "$#" -lt 2 ]
+elif [ "$#" -lt 2 ]
 then
 	echo "Error: missing red file name" >&2
 	echo "$usage_statement"
@@ -43,6 +43,7 @@ then
 	echo "$usage_statement"
 	exit 1
 elif [ ! -x "$1" ]
+then
 	echo "Error: cannot execute '$1'" >&2
 	exit 1
 elif [ ! -f "$2" ]
@@ -54,9 +55,11 @@ then
 	echo "Error: cannot open '$2'" >&2
 	exit 1
 elif [ ! -x "$script_loc/plot.sh" ]
+then
 	echo "Error: cannot execute '$script_loc/plot.sh" >&2
 	exit 1
 elif [ ! -x "$script_loc/plot_cells.sh" ]
+then
 	echo "Error: cannot execute '$script_loc/plot_cells.sh" >&2
 	exit 1
 fi
