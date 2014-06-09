@@ -1,1 +1,3 @@
-dist_bin_SCRIPTS=*.sh
+bin_SCRIPTS=*.sh
+dist_bin_SCRIPTS=${bin_SCRIPTS}
+

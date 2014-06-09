@@ -30,5 +30,6 @@ AC_CHECK_FUNCS([pow sqrt])
 
 AC_CONFIG_FILES([Makefile
                  man/Makefile
-                 src/Makefile])
+                 src/Makefile
+                 scripts/Makefile])
 AC_OUTPUT

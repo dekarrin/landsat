@@ -21,7 +21,7 @@ whereami ()
 
 script_loc="$(whereami)"
 usage_statement="Usage: plot_all.sh [landsat_bin] [red_tif] [near-infrared_tif]\
-[output_dir] [base_name] <args_to_landsat>"
+ [output_dir] [base_name] <args_to_landsat>"
 
 if [ "$#" -lt 1 ]
 then
@@ -84,7 +84,6 @@ shift
 mkdir -p "$output_dir"
 file="$output_dir/$output_base"
 
-
 analysis_start="$(date +%s)"
 "$landsat_bin" -q "$red_file" "$nir_file" "$@" > "${file}_results.txt"
 "$landsat_bin" -qc "$red_file" "$nir_file" "$@" > "${file}_cell_results.txt"
@@ -105,5 +104,4 @@ cat "${file}_cell_results.txt" | \
 cat "${file}_cell_results.txt" | \
  "$script_loc/plot_cells.sh" -r "${file}_cell_r2s.png"
 
-echo "Total time in analysis: $(date -d @$(expr $analysis_end \- $analysis_start) +%T)"
-
+echo "Total time in analysis: $(date -ud @$(expr $analysis_end \- $analysis_start) +%T)"
