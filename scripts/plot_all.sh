@@ -84,8 +84,11 @@ shift
 mkdir -p "$output_dir"
 file="$output_dir/$output_base"
 
+
+analysis_start="$(date +%s)"
 "$landsat_bin" -q "$red_file" "$nir_file" "$@" > "${file}_results.txt"
 "$landsat_bin" -qc "$red_file" "$nir_file" "$@" > "${file}_cell_results.txt"
+analysis_end="$(date +%s)"
 
 cat "${file}_results.txt" | "$script_loc/plot.sh" -s "${file}_slopes.png"
 cat "${file}_results.txt" | "$script_loc/plot.sh" -i "${file}_intercepts.png"
@@ -101,3 +104,6 @@ cat "${file}_cell_results.txt" | \
  "$script_loc/plot_cells.sh" -i "${file}_cell_intercepts.png"
 cat "${file}_cell_results.txt" | \
  "$script_loc/plot_cells.sh" -r "${file}_cell_r2s.png"
+
+echo "Total time in analysis: $(date -d @$(expr $analysis_end \- $analysis_start) +%T)"
+
