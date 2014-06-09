@@ -2,6 +2,11 @@
 
 # Generates all graphs for an analysis
 
+if [ -z "$(gnuplot --version 2>/dev/null)" ]
+then
+	echo "Error: gnuplot must be installed to generate graphs."
+fi
+
 whereami ()
 {
 	src="${BASH_SOURCE[0]}"
@@ -15,7 +20,8 @@ whereami ()
 }
 
 script_loc="$(whereami)"
-usage_statement="Usage: plot_all.sh [landsat_bin] [red_tif] [near-infrared_tif] [output_dir] [base_name] <args_to_landsat>"
+usage_statement="Usage: plot_all.sh [landsat_bin] [red_tif] [near-infrared_tif]\
+[output_dir] [base_name] <args_to_landsat>"
 
 if [ "$#" -lt 1 ]
 then

@@ -2,6 +2,11 @@
 
 # Pipe in the raw data from a -q invocation of landsat.
 
+if [ -z "$(gnuplot --version 2>/dev/null)" ]
+then
+	echo "Error: gnuplot must be installed to generate graphs."
+fi
+
 DATA_FILE="landsat_plot_data.txt"
 
 SLOPES_TITLE="Landsat Red/Near-Infrared Cell Correlation Slopes"
