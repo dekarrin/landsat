@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
@@ -24,3 +26,13 @@
 #define LOUDNESS_QUIET 0
 #define LOUDNESS_NORMAL 1
 #define LOUDNESS_VERBOSE 2
+
+#define IS_LOUDNESS(x) landsat::loudness_level >= x
+#define IS_QUIET IS_LOUDNESS(LOUDNESS_QUIET)
+#define IS_NORMAL IS_LOUDNESS(LOUDNESS_NORMAL)
+#define IS_VERBOSE IS_LOUDNESS(LOUDNESS_VERBOSE)
+
+#define IF_LOUDNESS(x, y) do { if(landsat::loudness_level >= x) {y;} } while(0)
+#define IF_QUIET(x) IF_LOUDNESS(LOUDNESS_QUIET, x)
+#define IF_NORMAL(x) IF_LOUDNESS(LOUDNESS_NORMAL, x) 
+#define IF_VERBOSE(x) IF_LOUDNESS(LOUDNESS_VERBOSE, x)
