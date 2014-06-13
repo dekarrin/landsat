@@ -1,4 +1,10 @@
+// must come before including landsat.hpp
+#define LOUDNESS_VAR landsat::get_loudness_level()
+
 #include "analysis.hpp"
+#include "landsat.hpp"
+
+#include <cmath>
 
 #define SIZE_BASE 2
 #define ANALYSIS_START_POW 1
@@ -72,7 +78,7 @@ namespace landsat
 		}
 		IF_NORMAL(std::cout << std::endl);
 		// okay, we have slope data, now find statistics
-		regression_stats *stats = new regression_stats;
+		window_regression_stats *stats = new window_regression_stats;
 		// first, filter out the bad ones
 		IF_VERBOSE(std::cout << "Found " << good_count);
 		IF_VERBOSE(std::cout << " good sectors out of ");
@@ -228,7 +234,7 @@ namespace landsat
 		}
 		IF_NORMAL(std::cout << std::endl);
 		// okay, we have slope data, now find statistics
-		regression_stats *stats = new regression_stats;
+		window_regression_stats *stats = new window_regression_stats;
 		// first, filter out the bad ones
 		IF_VERBOSE(std::cout << "Found " << good_count);
 		IF_VERBOSE(std::cout << " good sectors out of ");
@@ -296,7 +302,7 @@ namespace landsat
 
 	static size_t hybrid_subgroup_size(size_t group_size)
 	{
-		size_t grp_pow = (size_t) ((log(group_size) / log(SIZE_BASE));
+		size_t grp_pow = (size_t) (log(group_size) / log(SIZE_BASE));
 		size_t sub_pow = grp_pow - HYBRID_START_POW;
 		size_t subgroup_size = size_pow(SIZE_BASE, sub_pow);
 		return subgroup_size;
@@ -307,17 +313,17 @@ namespace landsat
 	{
 		size_t stats_count = (size_t) ((log(red.width()) /
 		 log(SIZE_BASE)) - ANALYSIS_START_POW);
-		array<regression_stats> *all_stats =
-		 new array<regression_stats>(stats_count);
+		array<window_regression_stats> *all_stats =
+		 new array<window_regression_stats>(stats_count);
 		size_t pos = 0;
 		// we only do powers of our size base
-		for (size_t size = size_pow(SIZE_BASE, ANALYSIS_POW);
+		for (size_t size = size_pow(SIZE_BASE, ANALYSIS_START_POW);
 		 size * SIZE_BASE < red.height(); size *= SIZE_BASE) {
 			IF_NORMAL(std::cout << "Checking window size ");
 			IF_NORMAL(std::cout << size << "...");
 			IF_NORMAL(std::cout << std::endl);
-			regression_stats *stats = get_window_regression_stats(
-			 red, nir, size);
+			window_regression_stats *stats =
+			 get_window_regression_stats(red, nir, size);
 			(*all_stats)[pos++] = *stats;
 			delete stats;
 		}
@@ -332,10 +338,10 @@ namespace landsat
 		array<cell_regression_stats> *all_stats =
 		 new array<cell_regression_stats>(stats_count);
 		size_t pos = 0;
-		for (size_t size = size_pow(SIZE_BASE, ANALYSIS_POW);
+		for (size_t size = size_pow(SIZE_BASE, ANALYSIS_START_POW);
 		 size * SIZE_BASE < red.height(); size *= SIZE_BASE) {
 			IF_NORMAL(std::cout << "Checking cell size ");
-			IF_NORMAL(std::cout << cell_size << "..." << std::endl);
+			IF_NORMAL(std::cout << size << "..." << std::endl);
 			cell_regression_stats *stats =
 			 get_cell_regression_stats(red, nir, size);
 			 (*all_stats)[pos++] = *stats;
@@ -349,17 +355,17 @@ namespace landsat
 	{
 		size_t stats_count = (size_t) ((log(red.width()) /
 		 log(SIZE_BASE)) - HYBRID_START_POW);
-		array<regression_stats> *all_stats =
-		 new array<regression_stats>(stats_count);
+		array<window_regression_stats> *all_stats =
+		 new array<window_regression_stats>(stats_count);
 		size_t pos = 0;
 		// we only do powers of our size base:
-		for (size_t size = size_pow(SIZE_BASE, HYBRID_POW);
+		for (size_t size = size_pow(SIZE_BASE, HYBRID_START_POW);
 		 size * SIZE_BASE < red.height(); size *= SIZE_BASE) {
 			IF_NORMAL(std::cout << "Checking window size ");
 			IF_NORMAL(std::cout << size << "...");
 			IF_NORMAL(std::cout << std::endl);
-			regression_stats *stats = get_hybrid_regression_stats(
-			 red, nir, size);
+			window_regression_stats *stats =
+			 get_hybrid_regression_stats(red, nir, size);
 			(*all_stats)[pos++] = *stats;
 			delete stats;
 		}

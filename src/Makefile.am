@@ -13,4 +13,4 @@ libanalysis_la_SOURCES=analysis.cpp
 bin_PROGRAMS=test landsat
 test_SOURCES=test.cpp
 landsat_SOURCES=landsat.cpp
-landsat_LDADD=${LDADD} libanalysis.la libparse.la -ltiff
+landsat_LDADD=libanalysis.la libparse.la ${LDADD} -ltiff

@@ -1,13 +1,50 @@
+#define LOUDNESS_VAR landsat::loudness_level
+
 #include "landsat.hpp"
+#include "analysis.hpp"
 #include "parse.hpp"
+#include "stats.hpp"
+#include "data.hpp"
 
 #include <iostream>
 #include <cstdio>
-#include <cmath>
 #include <cstring>
 #include <iomanip>
 #include <string>
 #include <sstream>
+
+int main(int argc, char **argv);
+
+namespace landsat
+{
+	static int loudness_level = LOUDNESS_NORMAL;
+	static void print_help(const char *progname);
+	static void print_version();
+	static void print_grid(grid<pixel_t> const &g);
+	static void print_rect(rect<size_t> const &r);
+	static const char *usage(const char *progname);
+	static rect<size_t> *interpret_window(rect<int> const &cli_window,
+	 grid<pixel_t> const &data);
+	
+	// Returns zero if successful.
+	//
+	// If the set value ended up having to get defaulted,
+	// returns less than zero if set to the minimum size and
+	// returns greater than zero if set to the maximum size.
+	//
+	// Makes no assumtions about cli_coord's size.
+	static int interpret_window_dimension(size_t &set, int cli_length,
+	 int cli_coord, size_t data_length);
+	static void interpret_window_coordinate(size_t &set, int cli);
+	static void print_offset_warning(const char *dimension,
+	 const char *comp_op, const char *comp);
+	static void process_images(const char *red, const char *near_infrared,
+	 rect<int> &cli_window, int mode);
+	static void output_window_results(
+	 const array<window_regression_stats> &results);
+	static void output_cell_results(
+	 const array<cell_regression_stats> &results);
+}
 
 int main(int argc, char **argv)
 {
@@ -41,7 +78,12 @@ int main(int argc, char **argv)
 namespace landsat
 {
 
-	void print_help(const char *progname)
+	int get_loudness_level()
+	{
+		return loudness_level;
+	}
+
+	static void print_help(const char *progname)
 	{
 		std::cout << usage(progname) << "\n";
 		std::cout << "\n";
@@ -74,13 +116,13 @@ namespace landsat
 		std::cout << std::endl;
 	}
 
-	void print_version()
+	static void print_version()
 	{
 		std::cout << "Landsat Data Correlation Tool " VERSION;
 		std::cout << std::endl;
 	}
 
-	const char *usage(const char *progname)
+	static const char *usage(const char *progname)
 	{
 		static char *buffer = NULL;
 		if (buffer == NULL) {
@@ -94,7 +136,7 @@ namespace landsat
 		return buffer;
 	}
 
-	void print_grid(grid<pixel_t> const &grid)
+	static void print_grid(grid<pixel_t> const &grid)
 	{
 		std::cout << std::setw(8) << std::left;
 		for (size_t y = 0; y < grid.height(); y++) {
@@ -110,14 +152,14 @@ namespace landsat
 		}
 	}
 
-	void print_rect(rect<size_t> const &r)
+	static void print_rect(rect<size_t> const &r)
 	{
 		std::cout << "{ x=" << r.x << ", y=" << r.y << ", width=";
 		std::cout << r.width << ", height=" << r.height << " }";
 		std::cout << std::endl;
 	}
 	
-	void process_images(const char *red, const char *near_infrared,
+	static void process_images(const char *red, const char *near_infrared,
 	 rect<int> &cli_window, int mode)
 	{
 		IF_VERBOSE(std::cout << "loading red image..." << std::endl);
@@ -133,13 +175,13 @@ namespace landsat
 		 *data_window);
 		delete data_window;
 		if (mode == MODE_NORMAL) {
-			array<regression_stats> *stats =
-			 get_all_window_regression_stats(*sub_red, *sub_nir);
+			array<window_regression_stats> *stats = analyze_windows(
+			 *sub_red, *sub_nir);
 			output_window_results(*stats);
 			delete stats;
 		} else if (mode == MODE_CELLS) {
-			array<cell_regression_stats> *stats =
-			 get_all_cell_regression_stats(*sub_red, *sub_nir);
+			array<cell_regression_stats> *stats = analyze_cells(
+			 *sub_red, *sub_nir);
 			output_cell_results(*stats);
 			delete stats;
 		} else {
@@ -152,7 +194,7 @@ namespace landsat
 		delete nir_data;
 	}
 
-	int interpret_window_dimension(size_t &set, int cli_length,
+	static int interpret_window_dimension(size_t &set, int cli_length,
 	 int cli_coord, size_t data_length)
 	{
 		int working_set;
@@ -200,13 +242,13 @@ namespace landsat
 		return error;
 	}
 
-	void interpret_window_coordinate(size_t &set, int cli)
+	static void interpret_window_coordinate(size_t &set, int cli)
 	{
 		set = (cli < 0) ? 0 : cli;
 	}
 
-	void print_offset_warning(const char *dimension, const char *comp_op,
-	 const char *comp)
+	static void print_offset_warning(const char *dimension,
+	 const char *comp_op, const char *comp)
 	{
 		std::cerr << "Warning: given offsets result in analysis "
 				"window ";
@@ -217,7 +259,7 @@ namespace landsat
 		std::cerr << std::endl;
 	}
 
-	rect<size_t> *interpret_window(rect<int> const &window,
+	static rect<size_t> *interpret_window(rect<int> const &window,
 	 grid<pixel_t> const &data)
 	{
 		rect<size_t> *interpreted = new rect<size_t>;
@@ -245,14 +287,15 @@ namespace landsat
 		return interpreted;
 	}
 
-	void output_window_results(array<regression_stats> const &results)
+	static void output_window_results(
+	 array<window_regression_stats> const &results)
 	{
 		IF_NORMAL(std::cout << "(y = mx + b)" << std::endl);
 		IF_NORMAL(std::cout << "size, mean m, stdev m, mean b, ");
 		IF_NORMAL(std::cout << "stdev b, mean r2, stdev r2");
 		IF_NORMAL(std::cout << std::endl);
 		for (size_t i = 0; i < results.size(); i++) {
-			regression_stats reg = results[i];
+			window_regression_stats reg = results[i];
 			IF_QUIET(std::cout << reg.window_size << ' ');
 			IF_QUIET(std::cout << reg.slope_mean << ' ');
 			IF_QUIET(std::cout << reg.slope_stddev << ' ');
@@ -263,7 +306,8 @@ namespace landsat
 		}
 	}
 
-	void output_cell_results(array<cell_regression_stats> const &results)
+	static void output_cell_results(
+	 array<cell_regression_stats> const &results)
 	{
 		IF_NORMAL(std::cout << "window size, slope, intercept, r2");
 		IF_NORMAL(std::cout << std::endl);
