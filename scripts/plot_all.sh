@@ -87,6 +87,7 @@ file="$output_dir/$output_base"
 analysis_start="$(date +%s)"
 "$landsat_bin" -q "$red_file" "$nir_file" "$@" > "${file}_results.txt"
 "$landsat_bin" -qc "$red_file" "$nir_file" "$@" > "${file}_cell_results.txt"
+"$landsat_bin" -qH "$red_file" "$nir_file" "$@" > "${file}_hybrid_results.txt"
 analysis_end="$(date +%s)"
 
 cat "${file}_results.txt" | "$script_loc/plot.sh" -s "${file}_slopes.png"
@@ -97,6 +98,18 @@ cat "${file}_results.txt" | \
 cat "${file}_results.txt" | \
  "$script_loc/plot.sh" -i -n "${file}_intercepts_noerr.png"
 cat "${file}_results.txt" | "$script_loc/plot.sh" -r -n "${file}_r2s_noerr.png"
+cat "${file}_hybrid_results.txt" | \
+ "$script_loc/hybrid_plot.sh" -s "${file}_hybrid_slopes.png"
+cat "${file}_hybrid_results.txt" | \
+ "$script_loc/hybrid_plot.sh" -i "${file}_hybrid_intercepts.png"
+cat "${file}_hybrid_results.txt" | \
+ "$script_loc/hybrid_plot.sh" -r "${file}_hybrid_r2s.png"
+cat "${file}_hybrid_results.txt" | \
+ "$script_loc/hybrid_plot.sh" -s -n "${file}_hybrid_slopes_noerr.png"
+cat "${file}_hybrid_results.txt" | \
+ "$script_loc/hybrid_plot.sh" -i -n "${file}_hybrid_intercepts_noerr.png"
+cat "${file}_hybrid_results.txt" | \
+ "$script_loc/hybrid_plot.sh" -r -n "${file}_hybrid_r2s_noerr.png"
 cat "${file}_cell_results.txt" | \
  "$script_loc/plot_cells.sh" -s "${file}_cell_slopes.png"
 cat "${file}_cell_results.txt" | \
