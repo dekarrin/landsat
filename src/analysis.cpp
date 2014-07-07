@@ -22,6 +22,7 @@ namespace landsat
 	 const grid<pixel_t> &nir);
 	static size_t size_pow(size_t base, size_t exp);	
 	static size_t hybrid_subgroup_size(size_t group_size);
+	static int round(double num);
 
 	static window_regression_stats *get_window_regression_stats(
 	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size)
@@ -302,7 +303,8 @@ namespace landsat
 
 	static size_t hybrid_subgroup_size(size_t group_size)
 	{
-		size_t grp_pow = (size_t) (log(group_size) / log(SIZE_BASE));
+		size_t grp_pow = (size_t) round(log(group_size) /
+		 log(SIZE_BASE));
 		size_t sub_pow = grp_pow - HYBRID_START_POW;
 		size_t subgroup_size = size_pow(SIZE_BASE, sub_pow);
 		return subgroup_size;
@@ -370,6 +372,24 @@ namespace landsat
 			delete stats;
 		}
 		return all_stats;
+	}
+
+	static int round(double num)
+	{
+		bool neg = false;
+		if (num < 0) {
+			neg = true;
+			num *= -1;
+		}
+		int rounded = static_cast<int>(num);
+		double fpart = num - rounded;
+		if (fpart >= 0.5) {
+			rounded++;
+		}
+		if (neg) {
+			rounded *= -1;
+		}
+		return rounded;
 	}
 
 }

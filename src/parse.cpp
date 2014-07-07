@@ -66,13 +66,14 @@ namespace landsat
 		 {"position", required_argument, NULL, 'p'},
 		 {"size",     required_argument, NULL, 's'},
 		 {"cells",    no_argument,       NULL, 'c'},
+		 {"fixed",    no_argument,       NULL, 'f'},
 		 {0,          0,                 0,    0}
 		};
 		int status = 0;
 		while (true)
 		{
-			int c = getopt_long(argc, argv, ":hiqvp:s:c", long_opts,
-			 NULL);
+			int c = getopt_long(argc, argv, ":hiqvp:s:cf",
+			 long_opts, NULL);
 			if (c == -1 || !(args->mode == MODE_NORMAL ||
 			 args->mode == MODE_CELLS) || status != 0) {
 				break;
@@ -88,6 +89,10 @@ namespace landsat
 
 				case 'c':
 					args->mode = MODE_CELLS;
+					break;
+
+				case 'f':
+					args->mode = MODE_HYBRID;
 					break;
 
 				case 'q':

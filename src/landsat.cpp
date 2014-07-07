@@ -20,8 +20,8 @@ namespace landsat
 	static int loudness_level = LOUDNESS_NORMAL;
 	static void print_help(const char *progname);
 	static void print_version();
-	static void print_grid(grid<pixel_t> const &g);
-	static void print_rect(rect<size_t> const &r);
+	void print_grid(grid<pixel_t> const &g);
+	void print_rect(rect<size_t> const &r);
 	static const char *usage(const char *progname);
 	static rect<size_t> *interpret_window(rect<int> const &cli_window,
 	 grid<pixel_t> const &data);
@@ -54,6 +54,7 @@ int main(int argc, char **argv)
 		switch (args->mode) {
 			case MODE_NORMAL:
 			case MODE_CELLS:
+			case MODE_HYBRID:
 				landsat::loudness_level = args->loudness;
 				landsat::process_images(args->red_filename,
 				 args->nir_filename, args->window, args->mode);
@@ -109,6 +110,8 @@ namespace landsat
 				"analysis window\n";
 		std::cout << "-c | --cells                      -   analyze "
 				"based on cell average values\n";
+		std::cout << "-f | --fixed                      -   analyze "
+				"with fixed number of data points\n";
 		std::cout << "\n";
 		std::cout << "Report bugs to: " PACKAGE_BUGREPORT "\n";
 		std::cout << PACKAGE_NAME " home page: " PACKAGE_URL "\n";
@@ -136,7 +139,7 @@ namespace landsat
 		return buffer;
 	}
 
-	static void print_grid(grid<pixel_t> const &grid)
+	void print_grid(grid<pixel_t> const &grid)
 	{
 		std::cout << std::setw(8) << std::left;
 		for (size_t y = 0; y < grid.height(); y++) {
@@ -152,7 +155,7 @@ namespace landsat
 		}
 	}
 
-	static void print_rect(rect<size_t> const &r)
+	void print_rect(rect<size_t> const &r)
 	{
 		std::cout << "{ x=" << r.x << ", y=" << r.y << ", width=";
 		std::cout << r.width << ", height=" << r.height << " }";
@@ -183,6 +186,11 @@ namespace landsat
 			array<cell_regression_stats> *stats = analyze_cells(
 			 *sub_red, *sub_nir);
 			output_cell_results(*stats);
+			delete stats;
+		} else if (mode == MODE_HYBRID) {
+			array<window_regression_stats> *stats = analyze_hybrid(
+			 *sub_red, *sub_nir);
+			output_window_results(*stats);
 			delete stats;
 		} else {
 			// should never happen
