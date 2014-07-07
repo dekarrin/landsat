@@ -1,0 +1,20 @@
+==16564== Memcheck, a memory error detector
+==16564== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==16564== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==16564== Command: src/landsat -Hq tests/red.tif tests/nir.tif
+==16564== 
+8 -0.482549 3.22193 17133.7 24161.6 0.318981 0.284504
+16 -0.342823 2.79935 16183.3 21160.4 0.274797 0.259392
+32 -0.267867 2.38996 15652.8 18242 0.228331 0.236708
+64 -0.150187 1.98111 14698.6 15297.4 0.171241 0.185893
+128 -0.21873 1.27782 15247.1 9829.44 0.0973302 0.108251
+256 -0.15363 0.629221 14763 5068.47 0.0304245 0.0294668
+==16564== 
+==16564== HEAP SUMMARY:
+==16564==     in use at exit: 0 bytes in 0 blocks
+==16564==   total heap usage: 898,704 allocs, 898,704 frees, 23,339,015 bytes allocated
+==16564== 
+==16564== All heap blocks were freed -- no leaks are possible
+==16564== 
+==16564== For counts of detected and suppressed errors, rerun with: -v
+==16564== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 31 from 8)
