@@ -63,6 +63,7 @@ clear_valgrind_cruft()
 		-e '/^==[0-9]\+== Using Valgrind-/d' \
 		-e '/^==[0-9]\+== Command/d' \
 		-e '/^==[0-9]\+== /s/[0-9,]\+ [Bb]ytes//g' \
+		-e '/^==[0-9]\+==   total heap usage:/d' \
 		-e '/^==[0-9]\+== ERROR SUMMARY/s/[0-9,]\+//g' \
 		-e 's/^==[0-9]\+==/==PID==/' \
 		"$1"
