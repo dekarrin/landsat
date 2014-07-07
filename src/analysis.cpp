@@ -6,26 +6,27 @@
 
 #include <cmath>
 
-#define SIZE_BASE 2
-#define ANALYSIS_START_POW 1
-#define HYBRID_START_POW 3
-
 namespace landsat
 {
 	static window_regression_stats *get_window_regression_stats(
-	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size);
+	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size,
+	 bool force);
 	static cell_regression_stats *get_cell_regression_stats(
-	 grid<pixel_t> const &red, grid<pixel_t> const &nir, size_t size);
+	 grid<pixel_t> const &red, grid<pixel_t> const &nir, size_t size,
+	 bool force);
 	static window_regression_stats *get_hybrid_regression_stats(
-	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size);
+	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size,
+	 bool force, unsigned int base, int datapow);
 	static bool is_good_data(const grid<pixel_t> &red,
 	 const grid<pixel_t> &nir);
 	static size_t size_pow(size_t base, size_t exp);	
-	static size_t hybrid_subgroup_size(size_t group_size);
+	static size_t hybrid_subgroup_size(size_t group_size, unsigned int base,
+	 int datapow);
 	static int round(double num);
 
 	static window_regression_stats *get_window_regression_stats(
-	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size)
+	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size,
+	 bool force)
 	{
 		size_t output_block = 100;
 		size_t row_count = (red.height() / size);
@@ -49,7 +50,7 @@ namespace landsat
 				 const_cast<grid<pixel_t>*>(&red), subr);
 				const grid<pixel_t> nir_sub(
 				 const_cast<grid<pixel_t>*>(&nir), subr);
-				if (is_good_data(red_sub, nir_sub)) {
+				if (force || is_good_data(red_sub, nir_sub)) {
 					linear_regression *reg =
 					 stats_find_linear_regression(red_sub,
 					 nir_sub);
@@ -108,8 +109,10 @@ namespace landsat
 	}
 
 	static cell_regression_stats *get_cell_regression_stats(
-	 grid<pixel_t> const &red, grid<pixel_t> const &nir, size_t size)
+	 grid<pixel_t> const &red, grid<pixel_t> const &nir, size_t size,
+	 bool force)
 	{
+					std::cout << "Red: " << red.size() << ", Nir: " << nir.size() << ", size: " << size << std::endl;
 		size_t output_block = 100;
 		rect<size_t> sub = {0, 0, size, size};
 		size_t xCount = red.width() / size;
@@ -130,7 +133,7 @@ namespace landsat
 				 const_cast<grid<pixel_t>*>(&red), sub);
 				const grid<pixel_t> sub_nir(
 				 const_cast<grid<pixel_t>*>(&nir), sub);
-				if (is_good_data(sub_red, sub_nir)) {
+				if (force || is_good_data(sub_red, sub_nir)) {
 					*red_avg_ptr = stats_mean(sub_red);
 					*nir_avg_ptr = stats_mean(sub_nir);
 					*goodness_ptr = true;
@@ -178,7 +181,8 @@ namespace landsat
 	}
 
 	static window_regression_stats *get_hybrid_regression_stats(
-	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size)
+	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size,
+	 bool force, unsigned int base, int datapow)
 	{
 		size_t output_block = 100;
 		size_t row_count = (red.height() / size);
@@ -193,7 +197,8 @@ namespace landsat
 		numeric_t *r2s_ptr = r2s.data();
 		bool *ptr_goodness = goodness.data();
 		size_t good_count = 0;
-		size_t subgroup_size = hybrid_subgroup_size(size);
+		size_t subgroup_size = hybrid_subgroup_size(size, base,
+		 datapow);
 		rect<size_t> subr = {0, 0, size, size};
 		for (subr.y = 0; subr.y + size <= red.height() && subr.y +
 		 size <= nir.height(); subr.y += size) {
@@ -203,10 +208,10 @@ namespace landsat
 				 const_cast<grid<pixel_t>*>(&red), subr);
 				const grid<pixel_t> nir_sub(
 				 const_cast<grid<pixel_t>*>(&nir), subr);
-				if (is_good_data(red_sub, nir_sub)) {
+				if (force || is_good_data(red_sub, nir_sub)) {
 					cell_regression_stats *cell_stats =
 					 get_cell_regression_stats(red_sub,
-					 nir_sub, subgroup_size);
+					 nir_sub, subgroup_size, true);
 					linear_regression *reg =
 					 &(cell_stats->regression);
 					*slopes_ptr = reg->eq.slope;
@@ -219,7 +224,7 @@ namespace landsat
 					IF_VERBOSE(std::cout << "Bad sector: ");
 					IF_VERBOSE(std::cout << "(" << subr.x);
 					IF_VERBOSE(std::cout << ", " << subr.y);
-					IF_VERBOSE(std::cout << ") ");
+					IF_VERBOSE(std::cout << ")<super> ");
 					*ptr_goodness = false;
 				}
 				slopes_ptr++;
@@ -301,31 +306,33 @@ namespace landsat
 		return total;
 	}
 
-	static size_t hybrid_subgroup_size(size_t group_size)
+	static size_t hybrid_subgroup_size(size_t group_size, unsigned int base,
+	 int datapow)
 	{
 		size_t grp_pow = (size_t) round(log(group_size) /
-		 log(SIZE_BASE));
-		size_t sub_pow = grp_pow - HYBRID_START_POW;
-		size_t subgroup_size = size_pow(SIZE_BASE, sub_pow);
+		 log(base));
+		size_t sub_pow = grp_pow - datapow;
+		size_t subgroup_size = size_pow(base, sub_pow);
 		return subgroup_size;
 	}
 
 	array<window_regression_stats> *analyze_windows(
-	 const grid<pixel_t> &red, const grid<pixel_t> &nir)
+	 const grid<pixel_t> &red, const grid<pixel_t> &nir, bool force,
+	 unsigned int base, int startpow)
 	{
 		size_t stats_count = (size_t) ((log(red.width()) /
-		 log(SIZE_BASE)) - ANALYSIS_START_POW);
+		 log(base)) - startpow);
 		array<window_regression_stats> *all_stats =
 		 new array<window_regression_stats>(stats_count);
 		size_t pos = 0;
 		// we only do powers of our size base
-		for (size_t size = size_pow(SIZE_BASE, ANALYSIS_START_POW);
-		 size * SIZE_BASE < red.height(); size *= SIZE_BASE) {
+		for (size_t size = size_pow(base, startpow);
+		 size * base < red.height(); size *= base) {
 			IF_NORMAL(std::cout << "Checking window size ");
 			IF_NORMAL(std::cout << size << "...");
 			IF_NORMAL(std::cout << std::endl);
 			window_regression_stats *stats =
-			 get_window_regression_stats(red, nir, size);
+			 get_window_regression_stats(red, nir, size, force);
 			(*all_stats)[pos++] = *stats;
 			delete stats;
 		}
@@ -333,19 +340,19 @@ namespace landsat
 	}
 
 	array<cell_regression_stats> *analyze_cells(const grid<pixel_t> &red,
-	 const grid<pixel_t> &nir)
+	 const grid<pixel_t> &nir, bool force, unsigned int base, int startpow)
 	{
 		size_t stats_count = (size_t) ((log(red.width()) /
-		 log(SIZE_BASE)) - ANALYSIS_START_POW);
+		 log(base)) - startpow);
 		array<cell_regression_stats> *all_stats =
 		 new array<cell_regression_stats>(stats_count);
 		size_t pos = 0;
-		for (size_t size = size_pow(SIZE_BASE, ANALYSIS_START_POW);
-		 size * SIZE_BASE < red.height(); size *= SIZE_BASE) {
+		for (size_t size = size_pow(base, startpow);
+		 size * base < red.height(); size *= base) {
 			IF_NORMAL(std::cout << "Checking cell size ");
 			IF_NORMAL(std::cout << size << "..." << std::endl);
 			cell_regression_stats *stats =
-			 get_cell_regression_stats(red, nir, size);
+			 get_cell_regression_stats(red, nir, size, force);
 			 (*all_stats)[pos++] = *stats;
 			delete stats;
 		}
@@ -353,21 +360,23 @@ namespace landsat
 	}
 
 	array<window_regression_stats> *analyze_hybrid(const grid<pixel_t> &red,
-	 const grid<pixel_t> &nir)
+	 const grid<pixel_t> &nir, bool force, unsigned int base, int startpow,
+	 int datapow)
 	{
 		size_t stats_count = (size_t) ((log(red.width()) /
-		 log(SIZE_BASE)) - HYBRID_START_POW);
+		 log(base)) - datapow);
 		array<window_regression_stats> *all_stats =
 		 new array<window_regression_stats>(stats_count);
 		size_t pos = 0;
 		// we only do powers of our size base:
-		for (size_t size = size_pow(SIZE_BASE, HYBRID_START_POW);
-		 size * SIZE_BASE < red.height(); size *= SIZE_BASE) {
+		for (size_t size = size_pow(base, datapow);
+		 size * base < red.height(); size *= base) {
 			IF_NORMAL(std::cout << "Checking window size ");
 			IF_NORMAL(std::cout << size << "...");
 			IF_NORMAL(std::cout << std::endl);
 			window_regression_stats *stats =
-			 get_hybrid_regression_stats(red, nir, size);
+			 get_hybrid_regression_stats(red, nir, size, force,
+			 base, datapow);
 			(*all_stats)[pos++] = *stats;
 			delete stats;
 		}

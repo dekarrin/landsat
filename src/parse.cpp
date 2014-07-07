@@ -23,6 +23,10 @@ namespace landsat
 		args->window.y = 0;
 		args->window.width = 0;
 		args->window.height = 0;
+		args->datapoints_pow = DEFAULT_HYBRID_START_POW;
+		args->windowstart_pow = DEFAULT_ANALYSIS_START_POW;
+		args->force = false;
+		args->base = DEFAULT_SIZE_BASE;
 		int nextind;
 		status = parse_opts(argc, argv, args, &nextind);
 		if (status == 0 &&
@@ -58,21 +62,25 @@ namespace landsat
 	 int *next_arg)
 	{
 		static option long_opts[] = {
-		 {"help",     no_argument,       NULL, 'h'},
-		 {"version",  no_argument,       NULL, 'i'},
-		 {"quiet",    no_argument,       NULL, 'q'},
-		 {"silent",   no_argument,       NULL, 'q'},
-		 {"verbose",  no_argument,       NULL, 'v'},
-		 {"position", required_argument, NULL, 'p'},
-		 {"size",     required_argument, NULL, 's'},
-		 {"cells",    no_argument,       NULL, 'c'},
-		 {"fixed",    no_argument,       NULL, 'f'},
-		 {0,          0,                 0,    0}
+		 {"help",       no_argument,       NULL, 'h'},
+		 {"version",    no_argument,       NULL, 'V'},
+		 {"quiet",      no_argument,       NULL, 'q'},
+		 {"silent",     no_argument,       NULL, 'q'},
+		 {"verbose",    no_argument,       NULL, 'v'},
+		 {"position",   required_argument, NULL, 'p'},
+		 {"size",       required_argument, NULL, 's'},
+		 {"cells",      no_argument,       NULL, 'c'},
+		 {"hybrid",     no_argument,       NULL, 'H'},
+		 {"force",      no_argument,       NULL, 'f'},
+		 {"datapoints", required_argument, NULL, 'n'},
+		 {"window",     required_argument, NULL, 'w'},
+		 {"base",       required_argument, NULL, 'b'},
+		 {0,            0,                 0,    0}
 		};
 		int status = 0;
 		while (true)
 		{
-			int c = getopt_long(argc, argv, ":hiqvp:s:cf",
+			int c = getopt_long(argc, argv, ":hVqvp:s:cHfn:b:w:",
 			 long_opts, NULL);
 			if (c == -1 || !(args->mode == MODE_NORMAL ||
 			 args->mode == MODE_CELLS) || status != 0) {
@@ -83,7 +91,7 @@ namespace landsat
 					args->mode = MODE_HELP;
 					break;
 
-				case 'i':
+				case 'V':
 					args->mode = MODE_VERSION;
 					break;
 
@@ -91,7 +99,7 @@ namespace landsat
 					args->mode = MODE_CELLS;
 					break;
 
-				case 'f':
+				case 'H':
 					args->mode = MODE_HYBRID;
 					break;
 
@@ -128,6 +136,46 @@ namespace landsat
 							 << "' is not a valid "
 							 << "size" << std::endl;
 						}
+					}
+					break;
+
+				case 'f':
+					args->force = true;
+					break;
+
+				case 'n':
+					unsigned int value;
+					if (!parse_int_u(optarg, &value) ||
+					 value > INT_MAX) {
+						status = ERR_BAD_N;
+						std::cerr << "Error: '"
+						 << optarg << "' is not a ";
+						 << "valid power" << std::endl;
+					} else {
+						args->datapoints_pow =
+						 static_cast<int>(value);
+					}
+					break;
+
+				case 'w':
+					unsigned int value;
+					if (!parse_int_u(optarg, &value) ||
+					 value > INT_MAX) {
+						status = ERR_BAD_WINDOW_START;
+						std::cerr << "Error: '"
+						 << optarg << "' is not a ";
+						 << "valid power" << std::endl;
+					} else {
+						args->windowstart_pow =
+						 static_cast<int>(value);
+					}
+
+				case 'b':
+					if (!parse_int_u(optarg, args->base)) {
+						status = ERR_BAD_BASE;
+						std::cerr << "Error: '"
+						 << optarg << "' is not a ";
+						 << "valid base" << std::endl;
 					}
 					break;
 

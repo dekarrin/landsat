@@ -39,7 +39,8 @@ namespace landsat
 	static void print_offset_warning(const char *dimension,
 	 const char *comp_op, const char *comp);
 	static void process_images(const char *red, const char *near_infrared,
-	 rect<int> &cli_window, int mode);
+	 rect<int> &cli_window, int mode, bool forcedata,
+	 unsigned int sizebase, int startpow, int datapow);
 	static void output_window_results(
 	 const array<window_regression_stats> &results);
 	static void output_cell_results(
@@ -57,7 +58,9 @@ int main(int argc, char **argv)
 			case MODE_HYBRID:
 				landsat::loudness_level = args->loudness;
 				landsat::process_images(args->red_filename,
-				 args->nir_filename, args->window, args->mode);
+				 args->nir_filename, args->window, args->mode,
+				 args->force, args->base, args->windowstart_pow,
+				 args->datapoints_pow);
 				break;
 
 			case MODE_HELP:
@@ -99,9 +102,9 @@ namespace landsat
 		std::cout << "Available options:\n";
 		std::cout << "-h | --help                       -   show this "
 				"help\n";
-		std::cout << "-i | --version                    -   show "
+		std::cout << "-V | --version                    -   show "
 				"version information\n";
-		std::cout << "-q | --quiet, --silent            -   supress "
+		std::cout << "-q | --quiet | --silent           -   supress "
 				"all output except for data\n";
 		std::cout << "-v | --verbose                    -   display "
 				"additional information\n";
@@ -111,8 +114,16 @@ namespace landsat
 				"analysis window\n";
 		std::cout << "-c | --cells                      -   analyze "
 				"based on cell average values\n";
-		std::cout << "-f | --fixed                      -   analyze "
+		std::cout << "-H | --hybrid                     -   analyze "
 				"with fixed number of data points\n";
+		std::cout << "-f | --force                      -   disable "
+				"data integrity check\n";
+		std::cout << "-n [N] | --datapoints=[N]         -   power for "
+				"data points in hybrid analysis\n";
+		std::cout << "-w [N] | --window=[N]             -   power for "
+				"start window size\n";
+		std::cout << "-b | --base                       -   window "
+				"size power base\n"; 
 		std::cout << "\n";
 		std::cout << "Report bugs to: " PACKAGE_BUGREPORT "\n";
 		std::cout << PACKAGE_NAME " home page: " PACKAGE_URL "\n";
@@ -164,7 +175,8 @@ namespace landsat
 	}
 	
 	static void process_images(const char *red, const char *near_infrared,
-	 rect<int> &cli_window, int mode)
+	 rect<int> &cli_window, int mode, bool forcedata, unsigned int sizebase,
+	 int startpow, int datapow);
 	{
 		IF_VERBOSE(std::cout << "loading red image..." << std::endl);
 		grid<pixel_t> *red_data = get_data(red);
@@ -180,17 +192,18 @@ namespace landsat
 		delete data_window;
 		if (mode == MODE_NORMAL) {
 			array<window_regression_stats> *stats = analyze_windows(
-			 *sub_red, *sub_nir);
+			 *sub_red, *sub_nir, forcedata, sizebase, startpow);
 			output_window_results(*stats);
 			delete stats;
 		} else if (mode == MODE_CELLS) {
 			array<cell_regression_stats> *stats = analyze_cells(
-			 *sub_red, *sub_nir);
+			 *sub_red, *sub_nir, forcedata, sizebase, startpow);
 			output_cell_results(*stats);
 			delete stats;
 		} else if (mode == MODE_HYBRID) {
 			array<window_regression_stats> *stats = analyze_hybrid(
-			 *sub_red, *sub_nir);
+			 *sub_red, *sub_nir, forcedata, sizebase, startpow,
+			 datapow);
 			output_window_results(*stats);
 			delete stats;
 		} else {

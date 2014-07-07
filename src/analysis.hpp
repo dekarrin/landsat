@@ -26,7 +26,7 @@ namespace landsat
 	// Returns an array of stats that contain both the size and the linear
 	// regression found for that size.
 	array<cell_regression_stats> *analyze_cells(grid<pixel_t> const &red,
-	 grid<pixel_t> const &nir);
+	 grid<pixel_t> const &nir, bool force, unsigned int base, int startpow);
 
 	// For each window size, a correlation is found in each group of that
 	// size using each pixel as the plotted data point.
@@ -36,7 +36,8 @@ namespace landsat
 	// of the slope, intercept, and coefficient of correlation for the set
 	// of regressions found for each of the sizes.
 	array<window_regression_stats> *analyze_windows(
-	 grid<pixel_t> const &red, grid<pixel_t> const &nir);
+	 grid<pixel_t> const &red, grid<pixel_t> const &nir, bool force,
+	 unsigned int base, int startpow);
 
 	// Combines the processes used by analyze_windows and analyze_cells.
 	// Similar process as analyze_windows, but uses the same number of data
@@ -49,6 +50,7 @@ namespace landsat
 	//
 	// Returns the same type of data structure as analyze_windows.
 	array<window_regression_stats> *analyze_hybrid(grid<pixel_t> const &red,
-	 grid<pixel_t> const &nir);
+	 grid<pixel_t> const &nir, bool force, unsigned int base, int startpow,
+	 int datapow);
 
 }

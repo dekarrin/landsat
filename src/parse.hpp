@@ -11,6 +11,10 @@ namespace landsat
 		char *red_filename;
 		char *nir_filename;
 		rect<int> window;
+		int datapoints_pow;
+		int windowstart_pow;
+		bool force;
+		unsigned int base;
 	};
 
 	int parse_args(int argc, char **argv, cli_arguments *args);
