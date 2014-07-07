@@ -86,9 +86,11 @@ file="$output_dir/$output_base"
 
 analysis_start="$(date +%s)"
 "$landsat_bin" -q "$red_file" "$nir_file" "$@" > "${file}_results.txt"
+normal_end="$(date +%s)"
 "$landsat_bin" -qc "$red_file" "$nir_file" "$@" > "${file}_cell_results.txt"
+cell_end="$(date +%s)"
 "$landsat_bin" -qH "$red_file" "$nir_file" "$@" > "${file}_hybrid_results.txt"
-analysis_end="$(date +%s)"
+hybrid_end="$(date +%s)"
 
 cat "${file}_results.txt" | "$script_loc/plot.sh" -s "${file}_slopes.png"
 cat "${file}_results.txt" | "$script_loc/plot.sh" -i "${file}_intercepts.png"
@@ -99,17 +101,17 @@ cat "${file}_results.txt" | \
  "$script_loc/plot.sh" -i -n "${file}_intercepts_noerr.png"
 cat "${file}_results.txt" | "$script_loc/plot.sh" -r -n "${file}_r2s_noerr.png"
 cat "${file}_hybrid_results.txt" | \
- "$script_loc/hybrid_plot.sh" -s "${file}_hybrid_slopes.png"
+ "$script_loc/plot_hybrid.sh" -s "${file}_hybrid_slopes.png"
 cat "${file}_hybrid_results.txt" | \
- "$script_loc/hybrid_plot.sh" -i "${file}_hybrid_intercepts.png"
+ "$script_loc/plot_hybrid.sh" -i "${file}_hybrid_intercepts.png"
 cat "${file}_hybrid_results.txt" | \
- "$script_loc/hybrid_plot.sh" -r "${file}_hybrid_r2s.png"
+ "$script_loc/plot_hybrid.sh" -r "${file}_hybrid_r2s.png"
 cat "${file}_hybrid_results.txt" | \
- "$script_loc/hybrid_plot.sh" -s -n "${file}_hybrid_slopes_noerr.png"
+ "$script_loc/plot_hybrid.sh" -s -n "${file}_hybrid_slopes_noerr.png"
 cat "${file}_hybrid_results.txt" | \
- "$script_loc/hybrid_plot.sh" -i -n "${file}_hybrid_intercepts_noerr.png"
+ "$script_loc/plot_hybrid.sh" -i -n "${file}_hybrid_intercepts_noerr.png"
 cat "${file}_hybrid_results.txt" | \
- "$script_loc/hybrid_plot.sh" -r -n "${file}_hybrid_r2s_noerr.png"
+ "$script_loc/plot_hybrid.sh" -r -n "${file}_hybrid_r2s_noerr.png"
 cat "${file}_cell_results.txt" | \
  "$script_loc/plot_cells.sh" -s "${file}_cell_slopes.png"
 cat "${file}_cell_results.txt" | \
@@ -117,4 +119,7 @@ cat "${file}_cell_results.txt" | \
 cat "${file}_cell_results.txt" | \
  "$script_loc/plot_cells.sh" -r "${file}_cell_r2s.png"
 
-echo "Total time in analysis: $(date -ud @$(expr $analysis_end \- $analysis_start) +%T)"
+echo "Time in window analysis: $(date -ud @$(expr $normal_end \- $analysis_start) +%T)"
+echo "Time in cell analysis:   $(date -ud @$(expr $cell_end \- $normal_end) +%T)"
+echo "Time in hybrid analysis: $(date -ud @$(expr $hybrid_end \- $cell_end) +%T)"
+echo "Total time in analysis:  $(date -ud @$(expr $hybrid_end \- $analysis_start) +%T)"
