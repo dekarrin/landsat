@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 		std::cerr << "usage: " << landsat::usage(argv[0]) << std::endl;
 	}
 	delete args;
+	delete[] landsat::usage(argv[0]);
 	return status;
 }
 
@@ -133,7 +134,7 @@ namespace landsat
 					"[near-infrared-image]";
 			size_t proglen = strlen(progname);
 			size_t fmtlen = strlen(fmt) - 2;
-			buffer = new char[(proglen + fmtlen) - 1];
+			buffer = new char[(proglen + fmtlen) + 1];
 			sprintf(buffer, fmt, progname);
 		}
 		return buffer;
