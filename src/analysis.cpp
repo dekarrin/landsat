@@ -112,7 +112,6 @@ namespace landsat
 	 grid<pixel_t> const &red, grid<pixel_t> const &nir, size_t size,
 	 bool force)
 	{
-					std::cout << "Red: " << red.size() << ", Nir: " << nir.size() << ", size: " << size << std::endl;
 		size_t output_block = 100;
 		rect<size_t> sub = {0, 0, size, size};
 		size_t xCount = red.width() / size;

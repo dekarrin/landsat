@@ -122,7 +122,7 @@ namespace landsat
 				"data points in hybrid analysis\n";
 		std::cout << "-w [N] | --window=[N]             -   power for "
 				"start window size\n";
-		std::cout << "-b | --base                       -   window "
+		std::cout << "-b [N] | --base=[N]               -   window "
 				"size power base\n"; 
 		std::cout << "\n";
 		std::cout << "Report bugs to: " PACKAGE_BUGREPORT "\n";
@@ -176,7 +176,7 @@ namespace landsat
 	
 	static void process_images(const char *red, const char *near_infrared,
 	 rect<int> &cli_window, int mode, bool forcedata, unsigned int sizebase,
-	 int startpow, int datapow);
+	 int startpow, int datapow)
 	{
 		IF_VERBOSE(std::cout << "loading red image..." << std::endl);
 		grid<pixel_t> *red_data = get_data(red);

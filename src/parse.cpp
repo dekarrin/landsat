@@ -83,7 +83,8 @@ namespace landsat
 			int c = getopt_long(argc, argv, ":hVqvp:s:cHfn:b:w:",
 			 long_opts, NULL);
 			if (c == -1 || !(args->mode == MODE_NORMAL ||
-			 args->mode == MODE_CELLS) || status != 0) {
+			 args->mode == MODE_CELLS || args->mode ==
+			 MODE_HYBRID) || status != 0) {
 				break;
 			}
 			switch (c) {
@@ -144,37 +145,38 @@ namespace landsat
 					break;
 
 				case 'n':
-					unsigned int value;
-					if (!parse_int_u(optarg, &value) ||
-					 value > INT_MAX) {
+					unsigned int nvalue;
+					if (!parse_int_u(optarg, &nvalue) ||
+					 nvalue > INT_MAX) {
 						status = ERR_BAD_N;
 						std::cerr << "Error: '"
-						 << optarg << "' is not a ";
+						 << optarg << "' is not a "
 						 << "valid power" << std::endl;
 					} else {
 						args->datapoints_pow =
-						 static_cast<int>(value);
+						 static_cast<int>(nvalue);
 					}
 					break;
 
 				case 'w':
-					unsigned int value;
-					if (!parse_int_u(optarg, &value) ||
-					 value > INT_MAX) {
+					unsigned int wvalue;
+					if (!parse_int_u(optarg, &wvalue) ||
+					 wvalue > INT_MAX) {
 						status = ERR_BAD_WINDOW_START;
 						std::cerr << "Error: '"
-						 << optarg << "' is not a ";
+						 << optarg << "' is not a "
 						 << "valid power" << std::endl;
 					} else {
 						args->windowstart_pow =
-						 static_cast<int>(value);
+						 static_cast<int>(wvalue);
 					}
 
 				case 'b':
-					if (!parse_int_u(optarg, args->base)) {
+					if (!parse_int_u(optarg,
+					 &(args->base))) {
 						status = ERR_BAD_BASE;
 						std::cerr << "Error: '"
-						 << optarg << "' is not a ";
+						 << optarg << "' is not a "
 						 << "valid base" << std::endl;
 					}
 					break;
