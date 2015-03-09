@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include <cstdint>
 
 namespace landsat
 {
@@ -315,6 +316,15 @@ namespace landsat
 			}
 	};
 
-	typedef unsigned short pixel_t;
+	typedef union {
+		uint8_t d8;
+		uint16_t d16;
+		uint32_t d32;
+		uint64_t d64;
+	} pixel_t;
 
+	typedef {
+		grid<pixel_t> *grid;
+		unsigned int size; 
+	} pixel_grid;
 }

@@ -9,23 +9,23 @@
 namespace landsat
 {
 	static window_regression_stats *get_window_regression_stats(
-	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size,
+	 const pixel_grid &red, const pixel_grid &nir, size_t size,
 	 bool force);
 	static cell_regression_stats *get_cell_regression_stats(
-	 grid<pixel_t> const &red, grid<pixel_t> const &nir, size_t size,
+	 pixel_grid const &red, pixel_grid const &nir, size_t size,
 	 bool force);
 	static window_regression_stats *get_hybrid_regression_stats(
-	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size,
+	 const pixel_grid &red, const pixel_grid &nir, size_t size,
 	 bool force, unsigned int base, int datapow);
-	static bool is_good_data(const grid<pixel_t> &red,
-	 const grid<pixel_t> &nir);
+	static bool is_good_data(const pixel_grid &red,
+	 const pixel_grid &nir);
 	static size_t size_pow(size_t base, size_t exp);	
 	static size_t hybrid_subgroup_size(size_t group_size, unsigned int base,
 	 int datapow);
 	static int round(double num);
 
 	static window_regression_stats *get_window_regression_stats(
-	 const grid<pixel_t> &red, const grid<pixel_t> &nir, size_t size,
+	 const pixel_grid &red, const pixel_grid &nir, size_t size,
 	 bool force)
 	{
 		size_t output_block = 100;
@@ -42,11 +42,11 @@ namespace landsat
 		bool *ptr_goodness = goodness.data();
 		size_t good_count = 0;
 		rect<size_t> subr = {0, 0, size, size};
-		for (subr.y = 0; subr.y + size <= red.height() && subr.y +
-		 size <= nir.height(); subr.y += size) {
-			for (subr.x = 0; subr.x + size <= red.width() &&
-			 subr.x + size <= nir.width(); subr.x += size) {
-				const grid<pixel_t> red_sub(
+		for (subr.y = 0; subr.y + size <= red.grid.height() && subr.y +
+		 size <= nir.grid.height(); subr.y += size) {
+			for (subr.x = 0; subr.x + size <= red.grid.width() &&
+			 subr.x + size <= nir.grid.width(); subr.x += size) {
+				const pixel_grid red_sub(
 				 const_cast<grid<pixel_t>*>(&red), subr);
 				const grid<pixel_t> nir_sub(
 				 const_cast<grid<pixel_t>*>(&nir), subr);

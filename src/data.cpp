@@ -17,33 +17,35 @@ namespace landsat
 		uint16 planarconfig;
 	};
 
-	grid<pixel_t> *read_tiff(const tiff_t *image, tsample_t sample);
+	pixel_grid *read_tiff(const tiff_t *image, tsample_t sample);
 	tiff_t *open_tiff(const char *filename);
 	void close_tiff(const tiff_t *image);
 
-	grid<pixel_t> *get_data(const char *filename)
+	pixel_grid *get_data(const char *filename)
 	{
 		tiff_t *image = open_tiff(filename);
-		grid<pixel_t> *data = read_tiff(image, 0);
+		pixel_grid *data = read_tiff(image, 0);
 		close_tiff(image);
 		delete[] image->filename;
 		delete image;
 		return data;
 	}
 
-	grid<pixel_t> *read_tiff(const tiff_t *image, tsample_t sample)
+	pixel_grid *read_tiff(const tiff_t *image, tsample_t sample)
 	{
-		grid<pixel_t> *img_data = new grid<pixel_t>(image->width,
+		pixel_grid *pg = new pixel_grid();
+		pg.grid = new grid<pixel_t>(image->width,
 		 image->height);
+		pg.tag = image->bitdepth;
 		tsize_t size = TIFFScanlineSize(image->handle);
 		tdata_t buffer = _TIFFmalloc(size);
 		for (uint16 i = 0; i < image->height; i++) {
 			TIFFReadScanline(image->handle, buffer, i, sample);
-			_TIFFmemcpy(img_data->row(i), buffer,
+			_TIFFmemcpy(pg.grid->row(i), buffer,
 			 (image->bitdepth / 8) * image->width);
 		}
 		_TIFFfree(buffer);
-		return img_data;
+		return pg;
 	}
 
 	void close_tiff(const tiff_t *image)
